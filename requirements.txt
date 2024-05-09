@@ -31,3 +31,4 @@ nltk
 spaCy
 pandas
 pytest
+langchain
