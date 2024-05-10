@@ -31,4 +31,6 @@ nltk
 spaCy
 pandas
 pytest
-langchain
+# chromadb_client
+# langchain
+# chromadb
