@@ -34,3 +34,14 @@ pytest
 # chromadb_client
 # langchain
 # chromadb
+
+# data extraction
+google-api-python-client
+pypdf2
+openpyxl
+python-docx
+
+# vector database
+pinecone-client
+hashlib
+tiktoken

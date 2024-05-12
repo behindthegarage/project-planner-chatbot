@@ -1,0 +1,27 @@
+{
+    "file_paths": {
+        "emails_cleaned": "./data/emails_cleaned.json",
+        "csv_output": "./data/cleaned_data.csv",
+        "json_output": "./data/processed_data.json",
+        "txt_output": "./data/text_data.txt"
+    },
+    "api_keys": {
+        "openai_key": "your_openai_api_key_here"
+    },
+    "database": {
+        "host": "localhost",
+        "port": 3306,
+        "user": "db_user",
+        "password": "db_password",
+        "dbname": "project_db"
+    },
+    "email_processing": {
+        "max_emails": 10,
+        "context_length": 2048
+    },
+    "logging": {
+        "log_file": "./logs/project_log.log",
+        "log_level": "INFO"
+    }
+}
+

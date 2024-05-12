@@ -1,3 +1,4 @@
+import os
 import json
 
 def load_emails_from_json(file_path):
@@ -31,7 +32,7 @@ def browse_emails(emails):
             print("Invalid command. Please try again.")
 
 def main():
-    file_path = 'emails_cleaned.json'
+    file_path = os.getenv('JSON_FILE_PATH', '../data/emails_cleaned.json')
     emails = load_emails_from_json(file_path)
     browse_emails(emails)
 
