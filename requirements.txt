@@ -43,5 +43,4 @@ python-docx
 
 # vector database
 pinecone-client
-hashlib
 tiktoken
