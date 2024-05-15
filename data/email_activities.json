@@ -1,1 +1,1107 @@
-null
+[
+    {
+        "Activity Title": "Lake Lansing Swimming",
+        "Type": "Field Trip",
+        "Description": "A trip to Lake Lansing for swimming.",
+        "Supplies": "Swimsuit, Towel, Sunscreen",
+        "Instructions": "Ensure campers bring their swimsuit and towel, apply sunscreen, and board the bus at 12:45 PM."
+    },
+    {
+        "Activity Title": "OHS Pool Swimming",
+        "Type": "Field Trip",
+        "Description": "Swimming at the OHS Pool.",
+        "Supplies": "Swimsuit, Towel, Sunscreen",
+        "Instructions": "Ensure campers bring their swimsuit and towel, apply sunscreen, and board the bus at 1:00 PM."
+    },
+    {
+        "Activity Title": "Board Game Extravaganza",
+        "Type": "Physical",
+        "Description": "A session for playing various board games.",
+        "Supplies": "Board games",
+        "Instructions": "Set up different board games at 10:00 AM and let campers choose and play."
+    },
+    {
+        "Activity Title": "Detroit Institute of Art",
+        "Type": "Field Trip",
+        "Description": "A trip to the Detroit Institute of Art.",
+        "Supplies": "Field trip shirt, Packed lunch, ID, Water bottle",
+        "Instructions": "Ensure campers wear their field trip shirt, bring a packed lunch, water bottle, and board the bus at 9:45 AM."
+    },
+    {
+        "Activity Title": "Make Your Own Sidewalk Chalk",
+        "Type": "Craft",
+        "Description": "Create your own sidewalk chalk.",
+        "Supplies": "Plaster of Paris, Water, Food coloring, Silicone molds, Mixing bowl, Spoon",
+        "Instructions": "Mix plaster of Paris with water and food coloring, pour into molds, let it set, and then remove the chalk from molds."
+    },
+    {
+        "Activity Title": "Disc Golf",
+        "Type": "Physical",
+        "Description": "Play a round of disc golf.",
+        "Supplies": "Discs, Disc golf course",
+        "Instructions": "Set up a disc golf course and explain the rules to the campers, then let them play."
+    },
+    {
+        "Activity Title": "Croquet",
+        "Type": "Physical",
+        "Description": "Play a game of croquet.",
+        "Supplies": "Croquet set (mallets, balls, wickets, stakes)",
+        "Instructions": "Set up the croquet course, explain the rules, and let the campers play."
+    },
+    {
+        "Activity Title": "Ultimate Frisbee",
+        "Type": "Physical",
+        "Description": "Play a game of ultimate frisbee.",
+        "Supplies": "Frisbee, Cones for marking the field",
+        "Instructions": "Set up the field with cones, explain the rules, and let the campers play."
+    },
+    {
+        "Activity Title": "3k Walk",
+        "Type": "Physical",
+        "Description": "A 3-kilometer walk.",
+        "Supplies": "Comfortable walking shoes, Water bottle",
+        "Instructions": "Organize the campers and lead them on a 3-kilometer walk."
+    },
+    {
+        "Activity Title": "DIY Salsa",
+        "Type": "Cooking",
+        "Description": "Make your own salsa.",
+        "Supplies": "Tomatoes, Onions, Cilantro, Lime, Salt, Peppers, Knife, Cutting board, Bowl",
+        "Instructions": "Chop all ingredients, mix them in a bowl, and season with salt and lime juice."
+    },
+    {
+        "Activity Title": "Geocaching",
+        "Type": "Physical",
+        "Description": "An outdoor activity where campers search for hidden containers using GPS.",
+        "Supplies": "GPS device or smartphone, Notebook, Pen, Small items for trade",
+        "Instructions": "Provide the coordinates, explain the rules of geocaching, and let the campers search for the hidden containers."
+    },
+    {
+        "Activity Title": "Escape Room Setup",
+        "Type": "Craft",
+        "Description": "Set up an escape room.",
+        "Supplies": "Locks, Clues, Props, Puzzles",
+        "Instructions": "Design and set up various puzzles and clues around the room and explain the rules to the campers."
+    },
+    {
+        "Activity Title": "Escape Room Challenge",
+        "Type": "Physical",
+        "Description": "Participate in an escape room challenge.",
+        "Supplies": "Previously set up escape room",
+        "Instructions": "Divide campers into teams, explain the rules, and let them solve the puzzles to escape the room."
+    },
+    {
+        "Activity Title": "East Lansing Aquatic Center",
+        "Type": "Field Trip",
+        "Description": "A trip to the East Lansing Aquatic Center.",
+        "Supplies": "Swimsuit, Towel, Water shoes, Sunscreen, Sack lunch",
+        "Instructions": "Ensure campers bring their swimsuit, towel, water shoes, and sunscreen, and board the bus at 10:30 AM."
+    },
+    {
+        "Activity Title": "Camping Games",
+        "Type": "Physical",
+        "Description": "Play various camping-themed games.",
+        "Supplies": "Camping gear, Props for games",
+        "Instructions": "Organize and explain different camping games, and let the campers participate."
+    },
+    {
+        "Activity Title": "Patriarche Park",
+        "Type": "Field Trip",
+        "Description": "A trip to Patriarche Park in East Lansing.",
+        "Supplies": "Field trip shirt, Packed lunch, ID, Water bottle",
+        "Instructions": "Ensure campers wear their field trip shirt, bring a packed lunch, water bottle, and board the bus at 12:30 PM."
+    },
+    {
+        "Activity Title": "Foods Around the World",
+        "Type": "Cooking",
+        "Description": "A tasting event with foods from different cultures.",
+        "Supplies": "Various foods from different cultures, Ingredient lists",
+        "Instructions": "Set up the foods in the commons area, provide ingredient lists for each dish, and let campers taste the different foods."
+    },
+    {
+        "Activity Title": "Drinking Straw Rollercoasters",
+        "Type": "Craft",
+        "Description": "Create rollercoasters using drinking straws.",
+        "Supplies": "Drinking straws, Tape, Scissors, Cardboard base",
+        "Instructions": "Use straws and tape to construct rollercoasters on a cardboard base."
+    },
+    {
+        "Activity Title": "African Thumb Pianos",
+        "Type": "Craft",
+        "Description": "Make African thumb pianos.",
+        "Supplies": "Wood, Metal tines, Nails, Hammer, Paint",
+        "Instructions": "Assemble the thumb pianos by attaching metal tines to the wooden base, decorate with paint."
+    },
+    {
+        "Activity Title": "DIY Constellation Projectors",
+        "Type": "Craft",
+        "Description": "Create projectors that display constellations.",
+        "Supplies": "Paper towel rolls, Black construction paper, Pins, Tape, Flashlight",
+        "Instructions": "Poke constellation patterns into the black paper, tape it over one end of the paper towel roll, and shine a flashlight through the other end to project the constellations."
+    },
+    {
+        "Activity Title": "Fruit Smoothies",
+        "Type": "Cooking",
+        "Description": "Make fruit smoothies.",
+        "Supplies": "Fresh fruits, Blender, Yogurt, Ice, Cups",
+        "Instructions": "Blend the fruits with yogurt and ice, then pour into cups and serve."
+    },
+    {
+        "Activity Title": "DIY Flower Loom",
+        "Type": "Craft",
+        "Description": "Create flower patterns using looms.",
+        "Supplies": "Yarn, Flower looms, Scissors",
+        "Instructions": "Wrap the yarn around the loom to create flower patterns, then cut and tie off the ends."
+    },
+    {
+        "Activity Title": "Forced Fun! (Co-op/Group Games)",
+        "Type": "Physical",
+        "Description": "Participate in cooperative and group games.",
+        "Supplies": "Various props for games",
+        "Instructions": "Organize the campers into groups and explain the rules of different cooperative games, then let them play."
+    },
+    {
+        "Activity Title": "Pine Cone Bird Feeder",
+        "Type": "Craft",
+        "Description": "Make bird feeders using pine cones.",
+        "Supplies": "Pine cones, Peanut butter, Bird seed, String",
+        "Instructions": "Spread peanut butter on the pine cones, roll them in bird seed, tie a string to the top, and hang them outside."
+    },
+    {
+        "Activity Title": "DIY Fairy Garden",
+        "Type": "Craft",
+        "Description": "Create miniature fairy gardens.",
+        "Supplies": "Small plants, Soil, Containers, Miniature decorations",
+        "Instructions": "Fill the container with soil, plant the small plants, and decorate with miniature items to create a fairy garden."
+    },
+    {
+        "Activity Title": "Hawk Island",
+        "Type": "Field Trip",
+        "Description": "A trip to Hawk Island for swimming and playground activities.",
+        "Supplies": "Swimsuit, Towel, Sunscreen",
+        "Instructions": "Ensure campers bring their swimsuit and towel, apply sunscreen, and board the bus at 12:15 PM."
+    },
+    {
+        "Activity Title": "Marshmallow Catapults",
+        "Type": "Craft",
+        "Description": "Build catapults to launch marshmallows.",
+        "Supplies": "Popsicle sticks, Rubber bands, Plastic spoons, Marshmallows",
+        "Instructions": "Construct catapults using popsicle sticks and rubber bands, attach a plastic spoon, and use it to launch marshmallows."
+    },
+    {
+        "Activity Title": "Magic Wands",
+        "Type": "Craft",
+        "Description": "Create your own magic wands.",
+        "Supplies": "Wooden dowels, Paint, Glitter, Glue, Ribbons",
+        "Instructions": "Decorate wooden dowels with paint, glitter, and ribbons to create magic wands."
+    },
+    {
+        "Activity Title": "Fruit Pizza",
+        "Type": "Cooking",
+        "Description": "Make fruit pizzas.",
+        "Supplies": "Sugar cookie dough, Cream cheese, Fresh fruits, Baking sheet",
+        "Instructions": "Bake the cookie dough into a large cookie, spread cream cheese on top, and decorate with fresh fruits."
+    },
+    {
+        "Activity Title": "Pine Cone Animals",
+        "Type": "Craft",
+        "Description": "Create animals using pine cones.",
+        "Supplies": "Pine cones, Paint, Glue, Googly eyes, Felt",
+        "Instructions": "Paint and decorate pine cones with googly eyes and felt to create animal figures."
+    },
+    {
+        "Activity Title": "Toilet Paper Roll Animals",
+        "Type": "Craft",
+        "Description": "Make animals using toilet paper rolls.",
+        "Supplies": "Toilet paper rolls, Paint, Glue, Googly eyes, Felt",
+        "Instructions": "Paint and decorate toilet paper rolls with googly eyes and felt to create animal figures."
+    },
+    {
+        "Activity Title": "Shoebox Habitat",
+        "Type": "Craft",
+        "Description": "Create a habitat using a shoebox.",
+        "Supplies": "Shoebox, Paint, Glue, Small decorations, Plastic animals",
+        "Instructions": "Decorate the inside of a shoebox to create a habitat and place plastic animals inside."
+    },
+    {
+        "Activity Title": "Potter Park Zoo",
+        "Type": "Field Trip",
+        "Description": "A trip to Potter Park Zoo.",
+        "Supplies": "Field trip shirt, Packed lunch, ID, Water bottle",
+        "Instructions": "Ensure campers wear their field trip shirt, bring a packed lunch, water bottle, and board the bus at 12:00 PM."
+    },
+    {
+        "Activity Title": "Making Bruschetta",
+        "Type": "Cooking",
+        "Description": "A cooking activity where campers will make bruschetta.",
+        "Supplies": [
+            "Tomatoes",
+            "Basil",
+            "Garlic",
+            "Olive Oil",
+            "Bread"
+        ],
+        "Instructions": "Chop tomatoes, basil, and garlic. Mix them with olive oil and top on toasted bread."
+    },
+    {
+        "Activity Title": "Moon Crater Experiment",
+        "Type": "Science",
+        "Description": "An experiment to create and observe moon craters.",
+        "Supplies": [
+            "Flour",
+            "Cocoa Powder",
+            "Small Balls"
+        ],
+        "Instructions": "Fill a tray with flour, dust with cocoa powder, and drop balls from different heights to observe crater formation."
+    },
+    {
+        "Activity Title": "Starry Night Light Jars",
+        "Type": "Craft",
+        "Description": "A craft activity to create glowing jars inspired by the starry night.",
+        "Supplies": [
+            "Jars",
+            "Glow Paint",
+            "Brushes"
+        ],
+        "Instructions": "Paint the inside of jars with glow paint in a starry pattern and let dry."
+    },
+    {
+        "Activity Title": "Edible Planets",
+        "Type": "Cooking",
+        "Description": "An activity to create edible models of planets.",
+        "Supplies": [
+            "Various fruits",
+            "Toothpicks",
+            "Plates"
+        ],
+        "Instructions": "Use different fruits to represent planets and assemble them on toothpicks."
+    },
+    {
+        "Activity Title": "Banana Piano",
+        "Type": "Science",
+        "Description": "A science activity to make a musical instrument using bananas.",
+        "Supplies": [
+            "Bananas",
+            "Makey Makey Kit",
+            "Computer"
+        ],
+        "Instructions": "Connect bananas to the Makey Makey kit and a computer to play music by touching the bananas."
+    },
+    {
+        "Activity Title": "DIY Fish Kites",
+        "Type": "Craft",
+        "Description": "A craft activity to make kites that look like fish.",
+        "Supplies": [
+            "Paper",
+            "Markers",
+            "String",
+            "Sticks"
+        ],
+        "Instructions": "Decorate paper to look like fish, attach to sticks with string, and fly the kites outside."
+    },
+    {
+        "Activity Title": "Seashell Wind Chimes",
+        "Type": "Craft",
+        "Description": "A craft activity to make wind chimes using seashells.",
+        "Supplies": [
+            "Seashells",
+            "String",
+            "Sticks"
+        ],
+        "Instructions": "Tie seashells to strings and attach them to a stick to create a wind chime."
+    },
+    {
+        "Activity Title": "Sea Creature Paper Mache",
+        "Type": "Craft",
+        "Description": "A craft activity to create sea creatures using paper mache.",
+        "Supplies": [
+            "Newspaper",
+            "Flour",
+            "Water",
+            "Paint"
+        ],
+        "Instructions": "Mix flour and water to make paper mache paste, shape newspaper into sea creatures, let dry, and paint."
+    },
+    {
+        "Activity Title": "Dish Soap Silly Putty",
+        "Type": "Science",
+        "Description": "A science activity to make silly putty using dish soap.",
+        "Supplies": [
+            "Dish Soap",
+            "Cornstarch"
+        ],
+        "Instructions": "Mix dish soap and cornstarch until it forms a putty-like consistency."
+    },
+    {
+        "Activity Title": "Mafia Game",
+        "Type": "Physical",
+        "Description": "A group game where participants play as different roles in a mafia-themed scenario.",
+        "Supplies": [
+            "None"
+        ],
+        "Instructions": "Assign roles to players (mafia, sheriff, doctor, civilians) and follow the game rules to eliminate the mafia or civilians."
+    },
+    {
+        "Activity Title": "Forced Fun! (Co-op/Group Games)",
+        "Type": "Physical",
+        "Description": "A series of cooperative and group games to encourage teamwork.",
+        "Supplies": [
+            "Varies depending on the games"
+        ],
+        "Instructions": "Organize and play various cooperative games such as relay races, tug-of-war, or team-building activities."
+    },
+    {
+        "Activity Title": "Drama Games",
+        "Type": "Physical",
+        "Description": "A variety of games focused on drama and acting.",
+        "Supplies": [
+            "None"
+        ],
+        "Instructions": "Engage in different drama games like charades, improvisation, and role-playing activities."
+    },
+    {
+        "Activity Title": "Homemade Salsa",
+        "Type": "Cooking",
+        "Description": "A cooking activity to make salsa from scratch.",
+        "Supplies": [
+            "Tomatoes",
+            "Onions",
+            "Peppers",
+            "Cilantro",
+            "Lime",
+            "Salt"
+        ],
+        "Instructions": "Chop all ingredients, mix in a bowl, and season with lime and salt to taste."
+    },
+    {
+        "Activity Title": "Lightning Bug Jars",
+        "Type": "Craft",
+        "Description": "A craft activity to create jars that mimic the glow of lightning bugs.",
+        "Supplies": [
+            "Jars",
+            "Glow Paint",
+            "Brushes"
+        ],
+        "Instructions": "Paint the inside of jars with glow paint in a pattern to resemble lightning bugs and let dry."
+    },
+    {
+        "Activity Title": "Carnival Games Creation",
+        "Type": "Craft",
+        "Description": "A craft activity to create various carnival games.",
+        "Supplies": [
+            "Cardboard",
+            "Paint",
+            "Markers",
+            "Scissors"
+        ],
+        "Instructions": "Design and build different carnival games using cardboard and decorating supplies."
+    },
+    {
+        "Activity Title": "DIY Whirligigs",
+        "Type": "Craft",
+        "Description": "A craft activity to make whirligigs.",
+        "Supplies": [
+            "Paper",
+            "Markers",
+            "Scissors",
+            "String"
+        ],
+        "Instructions": "Decorate paper, cut into shapes, and attach to string to create spinning whirligigs."
+    },
+    {
+        "Activity Title": "Scavenger Hunt",
+        "Type": "Physical",
+        "Description": "A scavenger hunt game where participants search for items based on clues.",
+        "Supplies": [
+            "List of items",
+            "Clues"
+        ],
+        "Instructions": "Provide a list of items and clues, and have participants search for them within a designated area."
+    },
+    {
+        "Activity Title": "Alka Seltzer Rockets",
+        "Type": "Science",
+        "Description": "A science activity to create rockets using Alka Seltzer tablets.",
+        "Supplies": [
+            "Alka Seltzer",
+            "Water",
+            "Film canisters"
+        ],
+        "Instructions": "Fill film canisters with water, add Alka Seltzer, close the lid quickly, and watch them launch."
+    },
+    {
+        "Activity Title": "M&M Science Rainbow",
+        "Type": "Science",
+        "Description": "A science activity to create a rainbow effect using M&Ms.",
+        "Supplies": [
+            "M&Ms",
+            "Water",
+            "Plate"
+        ],
+        "Instructions": "Arrange M&Ms in a circle on a plate, pour water in the center, and observe the colors spread to form a rainbow."
+    },
+    {
+        "Activity Title": "Carnival with Face Painting",
+        "Type": "Physical",
+        "Description": "A carnival event with various games and face painting.",
+        "Supplies": [
+            "Face paint",
+            "Brushes",
+            "Carnival game supplies"
+        ],
+        "Instructions": "Set up carnival game stations and offer face painting services to participants."
+    },
+    {
+        "Activity Title": "Sand Art & Snow Cones",
+        "Type": "Craft",
+        "Description": "A craft activity to create sand art and enjoy snow cones.",
+        "Supplies": [
+            "Colored sand",
+            "Bottles",
+            "Snow cone machine",
+            "Flavored syrup"
+        ],
+        "Instructions": "Fill bottles with layers of colored sand to create art and make snow cones using the machine and syrup."
+    },
+    {
+        "Activity Title": "Stained Glass Sidewalk Chalk Art",
+        "Type": "Craft",
+        "Description": "A craft activity to create stained glass effect art using sidewalk chalk.",
+        "Supplies": [
+            "Sidewalk chalk",
+            "Tape"
+        ],
+        "Instructions": "Use tape to create patterns on the sidewalk and color in sections with chalk to create a stained glass effect."
+    },
+    {
+        "Activity Title": "Food Coloring Bubble Art",
+        "Type": "Craft",
+        "Description": "A craft activity to create art using bubbles and food coloring.",
+        "Supplies": [
+            "Bubble solution",
+            "Food coloring",
+            "Paper"
+        ],
+        "Instructions": "Add food coloring to bubble solution, blow bubbles onto paper, and let the colors create patterns as they pop."
+    },
+    {
+        "Activity Title": "Floating Ink Experiment",
+        "Type": "Science",
+        "Description": "A science experiment where kids will observe floating ink.",
+        "Supplies": [
+            "Dry erase marker",
+            "Bowl of water"
+        ],
+        "Instructions": "Draw a shape on a glossy surface with the marker, pour water over it, and watch the ink float."
+    },
+    {
+        "Activity Title": "Suncatcher Jellyfish",
+        "Type": "Craft",
+        "Description": "A craft activity to create jellyfish suncatchers.",
+        "Supplies": [
+            "Clear plastic plates",
+            "Tissue paper",
+            "Glue",
+            "Scissors",
+            "String"
+        ],
+        "Instructions": "Cut tissue paper into shapes, glue them onto the plate, attach string to the top, and hang the suncatcher."
+    },
+    {
+        "Activity Title": "Sea Slime",
+        "Type": "Science",
+        "Description": "A science activity to make slime with a sea theme.",
+        "Supplies": [
+            "Glue",
+            "Baking soda",
+            "Contact lens solution",
+            "Blue food coloring",
+            "Glitter"
+        ],
+        "Instructions": "Mix glue and food coloring, add baking soda, then add contact lens solution and mix until it forms slime."
+    },
+    {
+        "Activity Title": "Ocean Snack Bars",
+        "Type": "Cooking",
+        "Description": "A cooking activity to create ocean-themed snack bars.",
+        "Supplies": [
+            "Granola",
+            "Honey",
+            "Blue food coloring",
+            "Fish-shaped candies"
+        ],
+        "Instructions": "Mix granola and honey, add food coloring, press into a pan, and decorate with fish candies."
+    },
+    {
+        "Activity Title": "Water Games",
+        "Type": "Physical",
+        "Description": "An outdoor activity involving various water games.",
+        "Supplies": [
+            "Water balloons",
+            "Buckets",
+            "Sponges"
+        ],
+        "Instructions": "Fill water balloons, set up buckets and sponges, and organize water-based relay races."
+    },
+    {
+        "Activity Title": "Erupting Moon Dust",
+        "Type": "Science",
+        "Description": "A science experiment to create an eruption effect with 'moon dust'.",
+        "Supplies": [
+            "Baking soda",
+            "Vinegar",
+            "Food coloring",
+            "Dish soap"
+        ],
+        "Instructions": "Mix baking soda and food coloring, form into a mound, pour vinegar mixed with dish soap over it to create an eruption."
+    },
+    {
+        "Activity Title": "Making Rockets",
+        "Type": "Art",
+        "Description": "An art activity to create homemade rockets.",
+        "Supplies": [
+            "Paper towel rolls",
+            "Construction paper",
+            "Glue",
+            "Scissors",
+            "Markers"
+        ],
+        "Instructions": "Decorate the paper towel rolls with construction paper and markers, add fins and a nose cone to complete the rocket."
+    },
+    {
+        "Activity Title": "Invisible 'Ink'",
+        "Type": "Science",
+        "Description": "A science experiment to create invisible ink messages.",
+        "Supplies": [
+            "Lemon juice",
+            "Cotton swabs",
+            "White paper",
+            "Heat source"
+        ],
+        "Instructions": "Write a message with lemon juice using a cotton swab, let it dry, and reveal the message by heating the paper."
+    },
+    {
+        "Activity Title": "Adventure Cooking",
+        "Type": "Cooking",
+        "Description": "A cooking activity where kids create adventure-themed snacks.",
+        "Supplies": [
+            "Bread",
+            "Peanut butter",
+            "Fruit slices",
+            "Cookie cutters"
+        ],
+        "Instructions": "Use cookie cutters to shape bread, spread peanut butter, and decorate with fruit slices."
+    },
+    {
+        "Activity Title": "Geocaching",
+        "Type": "Physical",
+        "Description": "A physical activity involving a treasure hunt using GPS coordinates.",
+        "Supplies": [
+            "GPS device or smartphone",
+            "Small treasures",
+            "Pen and paper"
+        ],
+        "Instructions": "Hide small treasures, provide GPS coordinates for the locations, and let kids use the devices to find them."
+    },
+    {
+        "Activity Title": "Escape Room",
+        "Type": "Physical",
+        "Description": "A physical activity where kids solve puzzles to 'escape' a room.",
+        "Supplies": [
+            "Locks",
+            "Keys",
+            "Puzzles",
+            "Clues"
+        ],
+        "Instructions": "Set up a room with puzzles and locks, provide clues, and challenge kids to solve the puzzles to find the keys and escape."
+    },
+    {
+        "Activity Title": "Watermelon Pizza",
+        "Type": "Cooking",
+        "Description": "A cooking activity to create pizza with watermelon slices.",
+        "Supplies": [
+            "Watermelon",
+            "Yogurt",
+            "Fruit toppings"
+        ],
+        "Instructions": "Cut watermelon into round slices, spread yogurt on top, and decorate with fruit toppings to resemble pizza."
+    },
+    {
+        "Activity Title": "NASA Moon Survival Challenge",
+        "Type": "Science",
+        "Description": "A science activity where kids plan how to survive on the moon using limited resources.",
+        "Supplies": [
+            "List of items",
+            "Paper",
+            "Pens"
+        ],
+        "Instructions": "Provide a list of items and challenge kids to choose which items they would need to survive on the moon and explain why."
+    },
+    {
+        "Activity Title": "Mentos Geysers",
+        "Type": "Science",
+        "Description": "Create a geyser by combining Mentos and soda.",
+        "Supplies": [
+            "Mentos",
+            "Soda"
+        ],
+        "Instructions": "1. Take a bottle of soda. 2. Drop Mentos into the soda. 3. Step back and watch the geyser form."
+    },
+    {
+        "Activity Title": "Papercraft Optical Illusions",
+        "Type": "Craft",
+        "Description": "Make optical illusions using paper.",
+        "Supplies": [
+            "Paper",
+            "Scissors",
+            "Markers"
+        ],
+        "Instructions": "1. Cut paper into desired shapes. 2. Draw patterns that create optical illusions. 3. Display the creations."
+    },
+    {
+        "Activity Title": "DIY Kaleidoscopes",
+        "Type": "Craft",
+        "Description": "Create your own kaleidoscope using household items.",
+        "Supplies": [
+            "Paper towel rolls",
+            "Mylar sheets",
+            "Beads",
+            "Tape"
+        ],
+        "Instructions": "1. Line the inside of a paper towel roll with Mylar sheets. 2. Secure one end with a clear plastic sheet and tape. 3. Add beads inside. 4. Secure the other end with another clear plastic sheet."
+    },
+    {
+        "Activity Title": "Water Play",
+        "Type": "Physical",
+        "Description": "Engage in water play activities.",
+        "Supplies": [
+            "Water shoes",
+            "Bathing suit",
+            "Towel"
+        ],
+        "Instructions": "1. Wear water shoes and a bathing suit. 2. Engage in various water play activities. 3. Dry off with a towel."
+    },
+    {
+        "Activity Title": "Junkyard Wars",
+        "Type": "Craft",
+        "Description": "Build creative structures using recycled materials.",
+        "Supplies": [
+            "Boxes",
+            "Paper towel/toilet paper rolls",
+            "Tissue boxes",
+            "Plastic containers",
+            "Foam",
+            "Milk jugs",
+            "Bubble wrap"
+        ],
+        "Instructions": "1. Gather recycled materials. 2. Use safe tools to cut and shape materials. 3. Assemble the materials into creative structures."
+    },
+    {
+        "Activity Title": "Hawk Island Lake Field Trip",
+        "Type": "Field Trip",
+        "Description": "Visit Hawk Island Lake for outdoor activities.",
+        "Supplies": [
+            "Field trip shirt",
+            "Disposable lunch",
+            "Water bottle",
+            "Sunscreen",
+            "Bug spray"
+        ],
+        "Instructions": "1. Wear the field trip shirt. 2. Pack a disposable lunch and water bottle. 3. Apply sunscreen and bug spray. 4. Enjoy activities at Hawk Island Lake."
+    },
+    {
+        "Activity Title": "Foods Around the World",
+        "Type": "Cooking",
+        "Description": "Sample various foods from different cultures.",
+        "Supplies": [
+            "Foods from different cultures",
+            "Ingredient lists"
+        ],
+        "Instructions": "1. Collect foods from various cultures with ingredient lists. 2. Set up foods in a common area. 3. Allow kids and staff to sample the foods."
+    },
+    {
+        "Activity Title": "Spinning Wire Motor Experiment",
+        "Type": "Science",
+        "Description": "Create a spinning motor using wires and magnets.",
+        "Supplies": [
+            "Copper wire",
+            "Magnets",
+            "Battery"
+        ],
+        "Instructions": "1. Shape the copper wire into a loop. 2. Attach magnets to the battery. 3. Place the wire loop over the battery and magnets, observing the spinning motion."
+    },
+    {
+        "Activity Title": "World Flag Fridge Magnets",
+        "Type": "Craft",
+        "Description": "Create fridge magnets featuring world flags.",
+        "Supplies": [
+            "Magnetic sheets",
+            "Paints",
+            "Brushes"
+        ],
+        "Instructions": "1. Paint world flags on magnetic sheets. 2. Cut out the painted flags. 3. Use them as fridge magnets."
+    },
+    {
+        "Activity Title": "Soap Carving",
+        "Type": "Craft",
+        "Description": "Carve designs into bars of soap.",
+        "Supplies": [
+            "Bars of soap",
+            "Carving tools"
+        ],
+        "Instructions": "1. Choose a bar of soap. 2. Use carving tools to create designs. 3. Display the carved soap."
+    },
+    {
+        "Activity Title": "DIY Travel Passports",
+        "Type": "Craft",
+        "Description": "Make travel passports for imaginative play.",
+        "Supplies": [
+            "Paper",
+            "Stickers",
+            "Markers"
+        ],
+        "Instructions": "1. Fold paper to resemble a passport. 2. Decorate with stickers and markers. 3. Use for imaginative travel play."
+    },
+    {
+        "Activity Title": "Hopping Corn in a Jar",
+        "Type": "Science",
+        "Description": "Make corn kernels 'hop' in a jar using vinegar and baking soda.",
+        "Supplies": [
+            "Corn kernels",
+            "Vinegar",
+            "Baking soda",
+            "Jar"
+        ],
+        "Instructions": "1. Fill a jar with vinegar. 2. Add corn kernels. 3. Add baking soda and watch the kernels hop."
+    },
+    {
+        "Activity Title": "Dancing Oobleck",
+        "Type": "Science",
+        "Description": "Create a non-Newtonian fluid that dances to sound vibrations.",
+        "Supplies": [
+            "Cornstarch",
+            "Water",
+            "Speaker"
+        ],
+        "Instructions": "1. Mix cornstarch and water to make oobleck. 2. Place the mixture on a speaker. 3. Play music and watch the oobleck dance."
+    },
+    {
+        "Activity Title": "DIY Sewing Needle Compass",
+        "Type": "Science",
+        "Description": "Create a compass using a sewing needle.",
+        "Supplies": [
+            "Sewing needle",
+            "Magnet",
+            "Bowl of water",
+            "Cork"
+        ],
+        "Instructions": "1. Magnetize the needle by rubbing it with a magnet. 2. Insert the needle into a piece of cork. 3. Float the cork in a bowl of water and watch it point north."
+    },
+    {
+        "Activity Title": "Dry Ice Demonstration",
+        "Type": "Science",
+        "Description": "Show the effects of dry ice in various experiments.",
+        "Supplies": [
+            "Dry ice",
+            "Warm water",
+            "Soap bubbles"
+        ],
+        "Instructions": "1. Handle dry ice with gloves. 2. Place dry ice in warm water to create fog. 3. Add soap bubbles to the fog for a visual effect."
+    },
+    {
+        "Activity Title": "Salt Dough Nature Mosaic/Print",
+        "Type": "Craft",
+        "Description": "Create a nature-themed mosaic or print using salt dough.",
+        "Supplies": [
+            "Salt dough",
+            "Nature items (leaves, flowers, etc.)"
+        ],
+        "Instructions": "1. Gather nature items. 2. Press them into the salt dough to create imprints or mosaics. 3. Allow the dough to dry and harden."
+    },
+    {
+        "Activity Title": "DIY Nature Board Game",
+        "Type": "Craft",
+        "Description": "Design and create a nature-themed board game.",
+        "Supplies": [
+            "Board",
+            "Markers",
+            "Nature-themed decorations"
+        ],
+        "Instructions": "1. Design a board game layout on the board. 2. Decorate with nature-themed items. 3. Create rules and play the game."
+    },
+    {
+        "Activity Title": "Create a Stick Person",
+        "Type": "Craft",
+        "Description": "Craft a person using sticks and other natural materials.",
+        "Supplies": [
+            "Sticks",
+            "Glue",
+            "Leaves",
+            "Twigs"
+        ],
+        "Instructions": "1. Collect sticks and natural materials. 2. Assemble and glue the materials to form a stick person. 3. Allow to dry."
+    },
+    {
+        "Activity Title": "Make a Twig Boat",
+        "Type": "Craft",
+        "Description": "Construct a boat using twigs and other natural materials.",
+        "Supplies": [
+            "Twigs",
+            "Leaves",
+            "String"
+        ],
+        "Instructions": "1. Gather twigs and tie them together to form a boat shape. 2. Use leaves for the sail. 3. Test it in water."
+    },
+    {
+        "Activity Title": "Flower Loom",
+        "Type": "Craft",
+        "Description": "Create a loom using flowers and other natural materials.",
+        "Supplies": [
+            "Flowers",
+            "String",
+            "Small sticks"
+        ],
+        "Instructions": "1. Form a frame using small sticks. 2. Weave string to create a loom. 3. Insert flowers into the weave."
+    },
+    {
+        "Activity Title": "Penguin Snacks",
+        "Type": "Cooking",
+        "Description": "Make snacks shaped like penguins.",
+        "Supplies": [
+            "Ingredients for snacks (e.g., olives, cream cheese, carrots)"
+        ],
+        "Instructions": "1. Use olives, cream cheese, and carrots to assemble snacks in the shape of penguins. 2. Serve and enjoy."
+    },
+    {
+        "Activity Title": "DIY Crayon Candle",
+        "Type": "Craft",
+        "Description": "Make a candle using crayons and other materials.",
+        "Supplies": [
+            "Crayons",
+            "Candle wick",
+            "Mold"
+        ],
+        "Instructions": "1. Melt crayons in a mold. 2. Insert a candle wick. 3. Allow to cool and harden."
+    },
+    {
+        "Activity Title": "Soap Carving",
+        "Type": "Craft",
+        "Description": "Carve shapes out of soap.",
+        "Supplies": [
+            "Soap bar",
+            "Carving tools"
+        ],
+        "Instructions": "1. Use carving tools to sculpt shapes out of a soap bar. 2. Smooth and refine the carvings."
+    },
+    {
+        "Activity Title": "Map Making",
+        "Type": "Craft",
+        "Description": "Create a map using various materials.",
+        "Supplies": [
+            "Paper",
+            "Markers",
+            "Decorative items"
+        ],
+        "Instructions": "1. Draw a map layout on paper. 2. Decorate with markers and other items. 3. Label and finish the map."
+    },
+    {
+        "Activity Title": "Feather Quill Pens",
+        "Type": "Craft",
+        "Description": "Make a pen using a feather as the quill.",
+        "Supplies": [
+            "Feather",
+            "Ink",
+            "Knife"
+        ],
+        "Instructions": "1. Cut the tip of the feather to form a nib. 2. Dip in ink and use as a pen."
+    },
+    {
+        "Activity Title": "Milk Carton Boats",
+        "Type": "Craft",
+        "Description": "Construct a boat using a milk carton.",
+        "Supplies": [
+            "Milk carton",
+            "Scissors",
+            "Markers"
+        ],
+        "Instructions": "1. Cut the milk carton to form a boat shape. 2. Decorate with markers. 3. Test it in water."
+    },
+    {
+        "Activity Title": "Cave Art",
+        "Type": "Art",
+        "Description": "Create art inspired by ancient cave paintings.",
+        "Supplies": [
+            "Paper",
+            "Charcoal",
+            "Paint"
+        ],
+        "Instructions": "1. Use charcoal and paint to create art on paper. 2. Mimic ancient cave painting styles."
+    },
+    {
+        "Activity Title": "Banana Ice Cream",
+        "Type": "Cooking",
+        "Description": "Make ice cream using bananas.",
+        "Supplies": [
+            "Bananas",
+            "Blender"
+        ],
+        "Instructions": "1. Freeze bananas. 2. Blend until smooth to create ice cream."
+    },
+    {
+        "Activity Title": "Foil Relief Art",
+        "Type": "Craft",
+        "Description": "Create art using foil to form relief designs.",
+        "Supplies": [
+            "Foil",
+            "Cardboard",
+            "Glue"
+        ],
+        "Instructions": "1. Glue foil onto cardboard to form a design. 2. Press to create relief patterns."
+    },
+    {
+        "Activity Title": "Junkyard Wars",
+        "Type": "Craft",
+        "Description": "Build structures using recycled materials.",
+        "Supplies": [
+            "Recycled items (boxes, rolls, containers)"
+        ],
+        "Instructions": "1. Gather recycled materials. 2. Design and build creative structures. 3. Display the finished work."
+    },
+    {
+        "Activity Title": "Tie Dye Coffee Filter",
+        "Type": "Craft",
+        "Description": "Create tie-dye patterns on coffee filters.",
+        "Supplies": [
+            "Coffee filters",
+            "Markers",
+            "Water spray bottle"
+        ],
+        "Instructions": "1. Color coffee filters with markers. 2. Spray with water to create tie-dye effect. 3. Allow to dry."
+    },
+    {
+        "Activity Title": "Owl Rice Cakes",
+        "Type": "Cooking",
+        "Description": "Make rice cakes decorated to look like owls.",
+        "Supplies": [
+            "Rice cakes",
+            "Fruits and nuts for decoration"
+        ],
+        "Instructions": "1. Use fruits and nuts to decorate rice cakes. 2. Arrange to resemble owls."
+    },
+    {
+        "Activity Title": "Leaf Masks",
+        "Type": "Craft",
+        "Description": "Create masks using leaves and other natural materials.",
+        "Supplies": [
+            "Leaves",
+            "Glue",
+            "Paper"
+        ],
+        "Instructions": "1. Collect leaves. 2. Glue onto paper to form mask shapes. 3. Cut out and wear."
+    },
+    {
+        "Activity Title": "DIY Parachutes",
+        "Type": "Science",
+        "Description": "Make parachutes using simple materials.",
+        "Supplies": [
+            "Plastic bags",
+            "String",
+            "Small objects"
+        ],
+        "Instructions": "1. Cut plastic bags into parachute shapes. 2. Attach strings and small objects. 3. Drop to test."
+    },
+    {
+        "Activity Title": "Rubber Band Car",
+        "Type": "Science",
+        "Description": "Build a car powered by rubber bands.",
+        "Supplies": [
+            "Rubber bands",
+            "Cardboard",
+            "Wheels"
+        ],
+        "Instructions": "1. Construct a car frame using cardboard. 2. Attach wheels and rubber bands. 3. Wind the rubber bands to power the car."
+    },
+    {
+        "Activity Title": "Dish Soap Silly Putty",
+        "Type": "Science",
+        "Description": "Create silly putty using dish soap.",
+        "Supplies": [
+            "Dish soap",
+            "Cornstarch"
+        ],
+        "Instructions": "1. Mix dish soap and cornstarch to form putty. 2. Knead until desired consistency is reached."
+    },
+    {
+        "Activity Title": "Tissue Paper Stained Glass",
+        "Type": "Craft",
+        "Description": "Make stained glass art using tissue paper.",
+        "Supplies": [
+            "Tissue paper",
+            "Glue",
+            "Wax paper"
+        ],
+        "Instructions": "1. Cut tissue paper into shapes. 2. Glue onto wax paper to form stained glass designs. 3. Allow to dry."
+    },
+    {
+        "Activity Title": "Paper Sculpture Tree",
+        "Type": "Craft",
+        "Description": "Create a tree sculpture using paper.",
+        "Supplies": [
+            "Paper",
+            "Scissors",
+            "Glue"
+        ],
+        "Instructions": "1. Cut paper into tree shapes. 2. Assemble and glue to form a 3D tree sculpture."
+    },
+    {
+        "Activity Title": "Capture the Flag at Sanders Preserve Trails",
+        "Type": "Physical",
+        "Description": "Play a game of capture the flag at Sanders Preserve Trails.",
+        "Supplies": [
+            "Flags",
+            "Markers for boundaries"
+        ],
+        "Instructions": "1. Divide into teams. 2. Set up flags and boundaries. 3. Play capture the flag."
+    },
+    {
+        "Activity Title": "Patriarche Park",
+        "Type": "Field Trip",
+        "Description": "Trip to Patriarche Park for outdoor activities.",
+        "Supplies": [
+            "Outdoor gear",
+            "Picnic supplies"
+        ],
+        "Instructions": "1. Travel to Patriarche Park. 2. Engage in various outdoor activities."
+    },
+    {
+        "Activity Title": "Frederik Meijer Garden",
+        "Type": "Field Trip",
+        "Description": "Visit to Frederik Meijer Garden in Grand Rapids.",
+        "Supplies": [
+            "Disposable bag lunch",
+            "Comfortable shoes"
+        ],
+        "Instructions": "1. Travel to Frederik Meijer Garden. 2. Explore the gardens and exhibits."
+    },
+    {
+        "Activity Title": "Potter Park Zoo",
+        "Type": "Field Trip",
+        "Description": "Field trip to Potter Park Zoo.",
+        "Supplies": [
+            "Comfortable shoes",
+            "Water bottle"
+        ],
+        "Instructions": "1. Travel to Potter Park Zoo. 2. Explore the zoo and animal exhibits."
+    },
+    {
+        "Activity Title": "Lake Lansing",
+        "Type": "Field Trip",
+        "Description": "Trip to Lake Lansing for swimming.",
+        "Supplies": [
+            "Swimwear",
+            "Towel",
+            "Water shoes"
+        ],
+        "Instructions": "1. Travel to Lake Lansing. 2. Swim and enjoy water activities."
+    }
+]
