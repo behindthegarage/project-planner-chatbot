@@ -9,14 +9,64 @@ client = OpenAI(
     api_key=os.getenv('OPENAI_API_KEY')
 )
 
+def generate_activities(emails_json):
+    prompt = f"""
+Given the following JSON file of emails:
+
+{emails_json}
+
+Return a JSON file of activities mentioned in the emails. Use the following fields:
+
+"Activity Title": Extract from email
+"Type": Choose from Art, Craft, Science, Cooking, Physical, or Field Trip  
+"Description": Write a one sentence description of the activity
+"Supplies": List supplies that may be used for the activity
+"Instructions": Write a set of instructions for the activity
+
+Output the result as a JSON array, with each activity as a separate object in the array.
+"""
+
+    # Call the OpenAI API
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        n=1,
+        stop=None,
+        temperature=0.7,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+    )
+
+    # return response.choices[0].text.strip()
+
 # Load emails data
 with open('data/emails_cleaned.json', 'r') as file:
-    emails = json.load(file)
+    emails_data = json.load(file)
 
-# Prepare the output list
-activities = []
+# Convert the emails data to a JSON string
+emails_json = json.dumps(emails_data)
 
-# Process each email
+# Generate the activities JSON
+activities_json = generate_activities(emails_json)
+
+# Save the activities JSON to a file
+# with open('data/email_activities.json', 'w') as file:
+    # json.dump(activities_json, indent=4)
+out_file = open('data/email_activities.json', 'w')
+json.dump(activities_json, out_file, indent=4)
+
+print("Activities JSON file generated successfully.")
+
+
+
+'''# Process each email
 for email in emails:
     body = email['body']
     # Construct the prompt for the OpenAI API
@@ -67,4 +117,4 @@ for email in emails:
 with open('data/email_activities.json', 'w') as outfile:
     json.dump(activities, outfile, indent=4)
 
-print("Activities extracted and saved successfully.")
+print("Activities extracted and saved successfully.")'''
