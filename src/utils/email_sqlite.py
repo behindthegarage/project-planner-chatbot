@@ -27,6 +27,9 @@ def load_activities_from_json(file_path):
 def insert_activities_into_db(conn, activities):
     cursor = conn.cursor()
     for activity in activities:
+        supplies = activity['Supplies']
+        if isinstance(supplies, list):
+            supplies = ', '.join(supplies)
         cursor.execute('''
             INSERT INTO activities (title, type, description, supplies, instructions)
             VALUES (?, ?, ?, ?, ?)
@@ -34,7 +37,7 @@ def insert_activities_into_db(conn, activities):
             activity['Activity Title'],
             activity['Type'],
             activity['Description'],
-            ', '.join(activity['Supplies']),
+            supplies,  # Use the converted or original string
             activity['Instructions']
         ))
     conn.commit()
