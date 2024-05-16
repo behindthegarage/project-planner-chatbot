@@ -1,7 +1,9 @@
 # Project-Planner-Chatbot
 
 ## Overview
-An AI-powered chatbot system that builds a database of activities and projects from exported Gmail emails. It uses natural language processing to extract relevant information from email conversations, primarily focused on summer camps and childcare programs. The chatbot interface allows users to query the database for activity ideas and plan new projects by providing prompts. The system can also generate novel project suggestions by combining elements from the existing database entries using advanced language models. This project aims to streamline activity planning and facilitate creativity for camp organizers and childcare providers.
+A collection of scripts with the goal of constructing an AI-powered chatbot system that builds a database of activities and projects from exported Gmail emails. It uses natural language processing to extract relevant information from email conversations, primarily focused on summer camps and childcare programs. The chatbot interface allows users to query the database for activity ideas and plan new projects by providing prompts. The system can also generate novel project suggestions by combining elements from the existing database entries using advanced language models. This project aims to streamline activity planning and facilitate creativity for camp organizers and childcare providers. 
+
+A WORK IN PROGRESS
 
 ## Installation
 
