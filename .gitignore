@@ -133,3 +133,9 @@ venv.bak/
 # Mailboxes
 *.mbox
 
+# Google OAuth flow
+credentials.json
+token.json
+
+# data directory
+data/
