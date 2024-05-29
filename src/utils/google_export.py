@@ -1,8 +1,10 @@
 import re
 import io
+import os
 import zipfile
 import pandas as pd
 import xlrd
+from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -26,16 +28,17 @@ def get_folder_id(service, folder_path):
         parent_id = items[0]['id']
     return parent_id
 
-def list_files_in_folder(service, folder_id):
+def list_files_in_folder(service, folder_id, folder_path=""):
     query = f"'{folder_id}' in parents"
     results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
     items = results.get('files', [])
     files = []
     for item in items:
+        item_path = os.path.join(folder_path, item['name'])
         if item['mimeType'] == 'application/vnd.google-apps.folder':
-            files.extend(list_files_in_folder(service, item['id']))
+            files.extend(list_files_in_folder(service, item['id'], item_path))
         else:
-            files.append(item)
+            files.append((item, item_path))
     return files
 
 def sanitize_filename(filename):
@@ -50,7 +53,10 @@ def export_summer_camp_text(creds, folder_id):
         print('No files found in the specified folder.')
         return
     
-    for item in files:
+    output_dir = 'data/google/'
+    os.makedirs(output_dir, exist_ok=True)
+    
+    for item, item_path in files:
         file_id = item['id']
         file_name = sanitize_filename(item['name'])
         mime_type = item['mimeType']
@@ -73,8 +79,10 @@ def export_summer_camp_text(creds, folder_id):
                 # Download Word document and extract text 
                 request = drive_service.files().get_media(fileId=file_id)
                 file_content = io.BytesIO(request.execute())
-                with zipfile.ZipFile(file_content) as z:
-                    file_content = docx2txt.process(z)
+                with open(os.path.join(output_dir, f'{file_name}.docx'), 'wb') as temp_file:
+                    temp_file.write(file_content.getbuffer())
+                file_content = docx2txt.process(os.path.join(output_dir, f'{file_name}.docx'))
+                os.remove(os.path.join(output_dir, f'{file_name}.docx'))
             
             elif mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' or mime_type == 'application/vnd.ms-excel':
                 # Download Excel file (.xlsx or .xls) and extract text
@@ -96,18 +104,25 @@ def export_summer_camp_text(creds, folder_id):
                 df = pd.read_csv(file_content)
                 file_content = df.to_csv(index=False)
                 
+            elif mime_type == 'text/html':
+                # Download HTML file and extract text
+                request = drive_service.files().get_media(fileId=file_id)
+                file_content = request.execute().decode('utf-8')
+                soup = BeautifulSoup(file_content, 'html.parser')
+                file_content = soup.get_text()
+                
             else:
-                print(f'Skipping unsupported file type: {file_name}')
+                print(f'Skipping unsupported file type: {item_path}')
                 continue
                 
-            print(f'Exporting text from: {file_name}')
-            with open(f'{file_name}.txt', 'w') as f:
+            print(f'Exporting text from: {item_path}')
+            with open(os.path.join(output_dir, f'{file_name}.txt'), 'w') as f:
                 f.write(file_content)
                 
         except HttpError as error:
-            print(f'An error occurred while processing file {file_name}: {error}')
+            print(f'An error occurred while processing file {item_path}: {error}')
         except zipfile.BadZipFile as error:
-            print(f'An error occurred while processing Word document {file_name}: {error}')
+            print(f'An error occurred while processing Word document {item_path}: {error}')
 
 # Authenticate and get credentials
 creds = None
