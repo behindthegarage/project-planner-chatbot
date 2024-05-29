@@ -1,7 +1,0 @@
-﻿Each of three people is wearing either a red hat or a blue hat. Each can see the color of the others’ hats but not her own. Each is told to raise her hand if she sees a red hat on another player. The first to guess the color of her own hat correctly wins.
-
-
-All three raise their hands. A few minutes pass in which no guesses are made, and then one player says “Red” and wins. 
-
-
-How did she know the color of her hat?

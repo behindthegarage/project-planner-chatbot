@@ -1,10 +1,13 @@
 import re
+import io
+import zipfile
+import pandas as pd
+import xlrd
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import io
 from PyPDF2 import PdfReader
 import docx2txt
 
@@ -70,7 +73,28 @@ def export_summer_camp_text(creds, folder_id):
                 # Download Word document and extract text 
                 request = drive_service.files().get_media(fileId=file_id)
                 file_content = io.BytesIO(request.execute())
-                file_content = docx2txt.process(file_content)
+                with zipfile.ZipFile(file_content) as z:
+                    file_content = docx2txt.process(z)
+            
+            elif mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' or mime_type == 'application/vnd.ms-excel':
+                # Download Excel file (.xlsx or .xls) and extract text
+                request = drive_service.files().get_media(fileId=file_id)
+                file_content = io.BytesIO(request.execute())
+                df = pd.read_excel(file_content)
+                file_content = df.to_csv(index=False)
+                
+            elif mime_type == 'application/vnd.google-apps.spreadsheet':
+                # Export Google Sheets as CSV and extract text
+                export_mime_type = 'text/csv'
+                request = drive_service.files().export_media(fileId=file_id, mimeType=export_mime_type)
+                file_content = request.execute().decode('utf-8')
+                
+            elif mime_type == 'text/csv':
+                # Download CSV file and extract text
+                request = drive_service.files().get_media(fileId=file_id)
+                file_content = io.StringIO(request.execute().decode('utf-8'))
+                df = pd.read_csv(file_content)
+                file_content = df.to_csv(index=False)
                 
             else:
                 print(f'Skipping unsupported file type: {file_name}')
@@ -82,6 +106,8 @@ def export_summer_camp_text(creds, folder_id):
                 
         except HttpError as error:
             print(f'An error occurred while processing file {file_name}: {error}')
+        except zipfile.BadZipFile as error:
+            print(f'An error occurred while processing Word document {file_name}: {error}')
 
 # Authenticate and get credentials
 creds = None

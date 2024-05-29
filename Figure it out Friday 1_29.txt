@@ -1,8 +1,0 @@
-﻿Puzzle Image 
-
-You have two strings of different lengths and a book of matches. If you place a lit match on the end of the longer string, it will burn for exactly 10 minutes. The shorter string on the other hand, will burn for exactly 1 minute.
-How can you measure exactly 5 minutes 30 seconds using the matches and the strings?
-A couple of rules/restrictions:
-1. You may not use scissors.
-2. The string is too rigid to be folded in half completely.
-3. You can not tell by eye where the halfway point of the string is.
