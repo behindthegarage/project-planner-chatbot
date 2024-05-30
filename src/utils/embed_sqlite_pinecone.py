@@ -1,11 +1,16 @@
 import os
 import sqlite3
-import openai
+from openai import OpenAI
+
 from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+client = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+)
 
 # Get API keys and index name from environment variables
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -16,7 +21,6 @@ if not openai_api_key or not pinecone_api_key or not pinecone_index_name:
     raise ValueError("OPENAI_API_KEY, PINECONE_API_KEY, and PINECONE_INDEX_NAME must be set in the environment variables.")
 
 # Initialize OpenAI
-openai.api_key = openai_api_key
 
 # Initialize Pinecone
 pc = Pinecone(api_key=pinecone_api_key)
@@ -54,11 +58,9 @@ def fetch_activities(conn):
     ]
 
 def get_embedding(text):
-    response = openai.Embedding.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
-    return response['data'][0]['embedding']
+    response = client.embeddings.create(input=text,
+    model="text-embedding-3-small")
+    return response.data[0].embedding
 
 def embed_activities(conn):
     activities = fetch_activities(conn)
@@ -79,10 +81,10 @@ def embed_activities(conn):
 def main():
     # Connect to the database
     conn = sqlite3.connect('activities.db')
-    
+
     # Embed activities and store in Pinecone
     embed_activities(conn)
-    
+
     # Close the database connection
     conn.close()
     print("Activities embedded and stored in Pinecone successfully.")
