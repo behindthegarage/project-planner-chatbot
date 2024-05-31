@@ -1,6 +1,8 @@
 import sqlite3
 import spacy
 import logging
+import numpy as np
+import pickle
 
 # Load the spaCy English model with word embeddings
 print("Loading spaCy English model...")
@@ -23,11 +25,22 @@ def precompute_vectors(texts):
             vectors.append(None)
     return vectors
 
-def semantic_similarity(vec1, vec2):
+def serialize_vector(vector):
+    return pickle.dumps(vector) if vector is not None else None
+
+def deserialize_vector(blob):
+    return pickle.loads(blob) if blob is not None else None
+
+def semantic_similarity(vec1_blob, vec2_blob):
     try:
+        vec1 = deserialize_vector(vec1_blob)
+        vec2 = deserialize_vector(vec2_blob)
         if vec1 is None or vec2 is None:
             return 0.0
-        return nlp.vocab.vectors.cosine_similarity(vec1, vec2)
+        vec1 = np.array(vec1)
+        vec2 = np.array(vec2)
+        cosine_sim = np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+        return float(cosine_sim)
     except Exception as e:
         print(f"Error in semantic_similarity function: {str(e)}")
         print(f"vec1: {vec1}")
@@ -89,7 +102,7 @@ cursor.execute("CREATE INDEX IF NOT EXISTS idx_temp_activities_id ON temp_activi
 
 data = []
 for i, activity in enumerate(normalized_activities):
-    data.append(activity + [title_vectors[i], description_vectors[i]])
+    data.append(activity + [serialize_vector(title_vectors[i]), serialize_vector(description_vectors[i])])
 
 cursor.executemany(
     """

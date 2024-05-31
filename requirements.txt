@@ -56,3 +56,7 @@ google-auth-oauthlib
 docx2txt
 xlrd
 bs4
+
+# dedupe_sqlite_python.py
+numpy
+pickle
