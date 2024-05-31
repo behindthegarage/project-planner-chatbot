@@ -3,6 +3,7 @@ import spacy
 import logging
 import numpy as np
 import pickle
+import csv
 
 # Load the spaCy English model with word embeddings
 print("Loading spaCy English model...")
@@ -64,22 +65,19 @@ activities = cursor.fetchall()
 
 normalized_activities = []
 titles = []
-descriptions = []
 for activity in activities:
     normalized_activity = [activity[0]]  # ID
-    for i, field in enumerate(activity[1:]):
-        normalized_field = normalize_text(field)
-        normalized_activity.append(normalized_field)
-        if i == 0:
-            titles.append(normalized_field)
-        elif i == 1:
-            descriptions.append(normalized_field)
+    normalized_title = normalize_text(activity[1])
+    normalized_description = normalize_text(activity[2])
+    normalized_supplies = normalize_text(activity[3])
+    normalized_instructions = normalize_text(activity[4])
+    normalized_activity.extend([normalized_title, normalized_description, normalized_supplies, normalized_instructions])
+    titles.append(normalized_title)
     normalized_activities.append(normalized_activity)
 
-# Precompute vectors for titles and descriptions
+# Precompute vectors for titles
 print("Precomputing vectors...")
 title_vectors = precompute_vectors(titles)
-description_vectors = precompute_vectors(descriptions)
 
 # Create temporary tables for normalized data and vectors
 print("Creating temporary tables...")
@@ -91,8 +89,7 @@ cursor.execute(
         description TEXT,
         supplies TEXT,
         instructions TEXT,
-        title_vector BLOB,
-        description_vector BLOB
+        title_vector BLOB
     )
 """
 )
@@ -102,12 +99,12 @@ cursor.execute("CREATE INDEX IF NOT EXISTS idx_temp_activities_id ON temp_activi
 
 data = []
 for i, activity in enumerate(normalized_activities):
-    data.append(activity + [serialize_vector(title_vectors[i]), serialize_vector(description_vectors[i])])
+    data.append(activity + [serialize_vector(title_vectors[i])])
 
 cursor.executemany(
     """
-    INSERT INTO temp_activities (id, title, description, supplies, instructions, title_vector, description_vector)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO temp_activities (id, title, description, supplies, instructions, title_vector)
+    VALUES (?, ?, ?, ?, ?, ?)
 """,
     data,
 )
@@ -134,18 +131,17 @@ while processed_activities < total_activities:
     cursor.execute(
         """
         SELECT t1.id AS id1, t2.id AS id2,
-               semantic_similarity(t1.title_vector, t2.title_vector) AS title_similarity,
-               semantic_similarity(t1.description_vector, t2.description_vector) AS description_similarity
+               t1.title AS title1, t1.description AS description1, t1.supplies AS supplies1, t1.instructions AS instructions1,
+               t2.title AS title2, t2.description AS description2, t2.supplies AS supplies2, t2.instructions AS instructions2,
+               semantic_similarity(t1.title_vector, t2.title_vector) AS title_similarity
         FROM temp_activities t1
         JOIN temp_activities t2 ON t1.id < t2.id
         WHERE t1.id BETWEEN ? AND ?
-          AND (semantic_similarity(t1.title_vector, t2.title_vector) >= ?
-               OR semantic_similarity(t1.description_vector, t2.description_vector) >= ?)
+          AND semantic_similarity(t1.title_vector, t2.title_vector) >= ?
     """,
         (
             processed_activities + 1,
             processed_activities + batch_size,
-            similarity_threshold,
             similarity_threshold,
         ),
     )
@@ -161,27 +157,21 @@ while processed_activities < total_activities:
 num_duplicates = len(potential_duplicates)
 print(f"Found {num_duplicates} potential duplicate(s).")
 
-# Open a file for writing the output in the data/ directory
-print("Writing potential duplicates to file...")
-with open("data/potential_duplicates.txt", "w") as file:
-    # Write the number of potential duplicates to the file
-    file.write(f"Found {num_duplicates} potential duplicate(s).\n\n")
+# Open a CSV file for writing the output in the data/ directory
+print("Writing potential duplicates to CSV file...")
+with open("data/potential_duplicates.csv", "w", newline='') as csvfile:
+    fieldnames = ['ID1', 'Title1', 'Description1', 'Supplies1', 'Instructions1', 
+                  'ID2', 'Title2', 'Description2', 'Supplies2', 'Instructions2', 'Title Similarity']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-    # Display the details of each potential duplicate and write to file
+    writer.writeheader()
     for duplicate in potential_duplicates:
-        id1, id2, title_similarity, description_similarity = duplicate
-
-        # Prepare the output string
-        output = f"Potential duplicate: ID1={id1}, ID2={id2}\n"
-        output += f"  Title similarity: {title_similarity:.2f}\n"
-        output += f"  Description similarity: {description_similarity:.2f}\n"
-        output += "---\n"
-
-        # Print the output to the console
-        print(output)
-
-        # Write the output to the file
-        file.write(output)
+        id1, id2, title1, description1, supplies1, instructions1, title2, description2, supplies2, instructions2, title_similarity = duplicate
+        writer.writerow({
+            'ID1': id1, 'Title1': title1, 'Description1': description1, 'Supplies1': supplies1, 'Instructions1': instructions1,
+            'ID2': id2, 'Title2': title2, 'Description2': description2, 'Supplies2': supplies2, 'Instructions2': instructions2,
+            'Title Similarity': f"{title_similarity:.2f}"
+        })
 
 # Close the database connection
 print("Closing the database connection...")
