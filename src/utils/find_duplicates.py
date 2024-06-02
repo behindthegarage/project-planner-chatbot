@@ -1,10 +1,7 @@
 import sqlite3
 import spacy
-import logging
 import numpy as np
 import pickle
-import csv
-import os
 
 # Load the spaCy English model with word embeddings
 print("Loading spaCy English model...")
@@ -49,11 +46,55 @@ def semantic_similarity(vec1_blob, vec2_blob):
         print(f"vec2: {vec2}")
         raise e
 
+def update_duplicates_field(conn, potential_duplicates):
+    cursor = conn.cursor()
+
+    # Create a dictionary to store the duplicates for each activity
+    duplicates_dict = {}
+    for duplicate in potential_duplicates:
+        id1, id2, _, _, _, _, _, _, _, _, _ = duplicate
+        if id1 not in duplicates_dict:
+            duplicates_dict[id1] = []
+        duplicates_dict[id1].append(id2)
+
+    # Update the "Duplicates" field for each activity
+    for activity_id, duplicates in duplicates_dict.items():
+        duplicates_str = ",".join(str(dup_id) for dup_id in duplicates)
+        cursor.execute(
+            """
+            UPDATE activities
+            SET Duplicates = ?
+            WHERE id = ?
+        """,
+            (duplicates_str, activity_id),
+        )
+
+    conn.commit()
+
 def main():
     # Connect to the SQLite database
     print("Connecting to the SQLite database...")
     conn = sqlite3.connect("activities.db")
     cursor = conn.cursor()
+
+    # Add the "Duplicates" field to the activities table if it doesn't exist
+    cursor.execute(
+        """
+        SELECT COUNT(*) 
+        FROM pragma_table_info('activities')
+        WHERE name = 'Duplicates'
+    """
+    )
+    column_exists = cursor.fetchone()[0]
+
+    if not column_exists:
+        cursor.execute(
+            """
+            ALTER TABLE activities
+            ADD COLUMN Duplicates TEXT
+        """
+        )
+        conn.commit()
 
     # Normalize the text in each field
     print("Normalizing text in each field...")
@@ -64,6 +105,8 @@ def main():
     """
     )
     activities = cursor.fetchall()
+
+    # ... rest of the code ...
 
     normalized_activities = []
     titles = []
@@ -133,9 +176,9 @@ def main():
         cursor.execute(
             """
             SELECT t1.id AS id1, t2.id AS id2,
-                   t1.title AS title1, t1.description AS description1, t1.supplies AS supplies1, t1.instructions AS instructions1,
-                   t2.title AS title2, t2.description AS description2, t2.supplies AS supplies2, t2.instructions AS instructions2,
-                   semantic_similarity(t1.title_vector, t2.title_vector) AS title_similarity
+                t1.title AS title1, t1.description AS description1, t1.supplies AS supplies1, t1.instructions AS instructions1,
+                t2.title AS title2, t2.description AS description2, t2.supplies AS supplies2, t2.instructions AS instructions2,
+                semantic_similarity(t1.title_vector, t2.title_vector) AS title_similarity
             FROM temp_activities t1
             JOIN temp_activities t2 ON t1.id < t2.id
             WHERE t1.id BETWEEN ? AND ?
@@ -159,25 +202,9 @@ def main():
     num_duplicates = len(potential_duplicates)
     print(f"Found {num_duplicates} potential duplicate(s).")
 
-    # Check if the CSV file already exists in the data/ directory and delete if present
-    csv_file_path = "data/potential_duplicates.csv"
-    if os.path.exists(csv_file_path):
-        os.remove(csv_file_path)
-
-    print("Writing potential duplicates to CSV file...")
-    with open(csv_file_path, "w", newline='') as csvfile:
-        fieldnames = ['ID1', 'Title1', 'Description1', 'Supplies1', 'Instructions1', 
-                      'ID2', 'Title2', 'Description2', 'Supplies2', 'Instructions2', 'Title Similarity']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for duplicate in potential_duplicates:
-            id1, id2, title1, description1, supplies1, instructions1, title2, description2, supplies2, instructions2, title_similarity = duplicate
-            writer.writerow({
-                'ID1': id1, 'Title1': title1, 'Description1': description1, 'Supplies1': supplies1, 'Instructions1': instructions1,
-                'ID2': id2, 'Title2': title2, 'Description2': description2, 'Supplies2': supplies2, 'Instructions2': instructions2,
-                'Title Similarity': f"{title_similarity:.2f}"
-            })
+    # Update the "Duplicates" field in the activities table
+    print("Updating the 'Duplicates' field in the activities table...")
+    update_duplicates_field(conn, potential_duplicates)
 
     # Close the database connection
     print("Closing the database connection...")

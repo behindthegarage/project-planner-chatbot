@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import csv
+import sqlite3
+# import utils.dedupe_sqlite_python
 
 # Function to read potential duplicates from the file
 def read_potential_duplicates(file_path):
@@ -46,30 +48,84 @@ df = pd.DataFrame(potential_duplicates, columns=["ID1", "Title1", "Description1"
 # Streamlit app
 st.title("Potential Duplicates Viewer")
 
+# Button to reset potential duplicates
+#  if st.button("Start Over"):
+        
+    # Run dedupe_sqlite_python.py
+    # utils.dedupe_sqlite_python.main()
+    
+    #st.success("Potential duplicates have been reset")
+    # Refresh the page to show the updated list
+    # st.rerun()
+
 # Select a record
-selected_id = st.selectbox("Select a record ID to view potential duplicates:", df["ID1"].unique())
+first_selected_id = st.selectbox("Select a record ID to view potential duplicates:", df["ID1"].unique())
+selected_id = first_selected_id
+
+# Display an input box to allow the user to enter or change the ID of the selected record
+selected_id = st.number_input("Selected Record ID", value=selected_id, step=1)
 
 # Filter the DataFrame to show only the potential duplicates for the selected record
-filtered_df = df[(df["ID1"] == selected_id) | (df["ID2"] == selected_id)]
-filtered_df = filtered_df[(filtered_df["ID1"] != selected_id) & (filtered_df["ID2"] != selected_id)]
+filtered_df = df[df["ID1"] == selected_id][["ID2", "Title2", "Description2", "Supplies2", "Instructions2"]]
 
-# Display the potential duplicates for the selected record
-st.write(f"Potential duplicates for record ID {selected_id}:")
-st.dataframe(filtered_df)
+# Check if the selected ID exists in the DataFrame
+if not filtered_df.empty:
+    # Display the potential duplicates for the selected record
+    selected_title = df[df["ID1"] == selected_id]["Title1"].iloc[0]
+    selected_description = df[df["ID1"] == selected_id]["Description1"].iloc[0]
+    selected_supplies = df[df["ID1"] == selected_id]["Supplies1"].iloc[0]
+    selected_instructions = df[df["ID1"] == selected_id]["Instructions1"].iloc[0]
+    st.write(f"Potential duplicates for record ID {selected_id}: {selected_title} - {selected_description}")
+    # st.table(filtered_df)
 
-# Add checkboxes for each potential duplicate
-selected_duplicates = []
-for index, row in filtered_df.iterrows():
-    checkbox = st.checkbox(f"Select duplicate pair (ID1: {row['ID1']}, ID2: {row['ID2']})", key=f"checkbox_{index}")
-    if checkbox:
-        selected_duplicates.append(index)
+    # Add checkboxes for each potential duplicate
+    selected_duplicates = []
+    for index, row in filtered_df.iterrows():
+        checkbox = st.checkbox(f"Select duplicate ID2: {row['ID2']}: {row['Title2']} - {row['Description2']}", key=f"checkbox_{row.name}")
+        if checkbox:
+            selected_duplicates.append(row.name)
 
-# Button to delete selected duplicates
-if st.button("Delete Selected Duplicates"):
-    # Filter out the selected duplicates
-    potential_duplicates = [dup for i, dup in enumerate(potential_duplicates) if i not in selected_duplicates]
-    # Write the updated list back to the CSV file
-    write_potential_duplicates(file_path, potential_duplicates)
-    st.success("Selected duplicates have been deleted.")
-    # Refresh the page to show the updated list
-    st.experimental_rerun()
+    # Button to delete selected duplicates
+    if st.button("Delete Selected Duplicates"):
+        # Get the IDs of the selected duplicates
+        selected_duplicate_ids = filtered_df.loc[selected_duplicates, "ID2"].tolist()
+        
+        # Connect to the SQLite database
+        conn = sqlite3.connect('activities.db')
+        cursor = conn.cursor()
+        
+        # Delete the selected duplicates from the database
+        for duplicate_id in selected_duplicate_ids:
+            cursor.execute("DELETE FROM activities WHERE ID = ?", (duplicate_id,))
+            st.write(f"Deleted record with ID: {duplicate_id}")
+        
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+        
+        # Remove the selected duplicates from the potential_duplicates list
+        potential_duplicates = [dup for dup in potential_duplicates if dup[5] not in selected_duplicate_ids]
+        
+        # Write the updated list back to the CSV file
+        write_potential_duplicates(file_path, potential_duplicates)
+        
+        st.success("Selected duplicates have been deleted.")
+        # Refresh the page to show the updated list
+        st.rerun()
+else:
+    st.write(f"No potential duplicates found for record ID {selected_id}.")
+
+# Connect to the SQLite database to fetch records
+conn = sqlite3.connect('activities.db')
+cursor = conn.cursor()
+# Execute the query to fetch all records
+cursor.execute("SELECT * FROM activities")
+records = cursor.fetchall()
+# Close the database connection
+conn.close()
+
+# Convert the fetched records into a DataFrame for display
+records_df = pd.DataFrame(records, columns=['ID', 'Title', 'Type', 'Description', 'Supplies', 'Instructions', 'Source', 'Duplicates'])
+# Display the records in a table using Streamlit
+st.write("Viewing all records in activities database:")
+st.dataframe(records_df)
