@@ -57,13 +57,13 @@ def update_duplicates_field(conn, potential_duplicates):
             duplicates_dict[id1] = []
         duplicates_dict[id1].append(id2)
 
-    # Update the "Duplicates" field for each activity
+    # Update the "related_ids" field for each activity
     for activity_id, duplicates in duplicates_dict.items():
         duplicates_str = ",".join(str(dup_id) for dup_id in duplicates)
         cursor.execute(
             """
             UPDATE activities
-            SET Duplicates = ?
+            SET related_ids = ?
             WHERE id = ?
         """,
             (duplicates_str, activity_id),
@@ -77,12 +77,12 @@ def main():
     conn = sqlite3.connect("activities.db")
     cursor = conn.cursor()
 
-    # Add the "Duplicates" field to the activities table if it doesn't exist
+    # Add the "related_ids" field to the activities table if it doesn't exist
     cursor.execute(
         """
         SELECT COUNT(*) 
         FROM pragma_table_info('activities')
-        WHERE name = 'Duplicates'
+        WHERE name = 'related_ids'
     """
     )
     column_exists = cursor.fetchone()[0]
@@ -91,7 +91,7 @@ def main():
         cursor.execute(
             """
             ALTER TABLE activities
-            ADD COLUMN Duplicates TEXT
+            ADD COLUMN related_ids TEXT
         """
         )
         conn.commit()
@@ -202,8 +202,8 @@ def main():
     num_duplicates = len(potential_duplicates)
     print(f"Found {num_duplicates} potential duplicate(s).")
 
-    # Update the "Duplicates" field in the activities table
-    print("Updating the 'Duplicates' field in the activities table...")
+    # Update the "related_ids" field in the activities table
+    print("Updating the 'related_ids' field in the activities table...")
     update_duplicates_field(conn, potential_duplicates)
 
     # Close the database connection
