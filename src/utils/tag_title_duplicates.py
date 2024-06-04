@@ -13,10 +13,11 @@ def mark_exact_title_duplicates():
     title_dict = {}
     for record in records:
         record_id, title = record
-        if title in title_dict:
-            title_dict[title].append(record_id)
+        title_lower = title.lower()  # Convert title to lowercase
+        if title_lower in title_dict:
+            title_dict[title_lower].append(record_id)
         else:
-            title_dict[title] = [record_id]
+            title_dict[title_lower] = [record_id]
 
     # Counter for altered records
     altered_count = 0
