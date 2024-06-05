@@ -26,19 +26,21 @@ if not openai_api_key or not pinecone_api_key or not pinecone_index_name:
 pc = Pinecone(api_key=pinecone_api_key)
 
 # Create the Pinecone index if it doesn't exist
-if pinecone_index_name not in pc.list_indexes().names():
-    pc.create_index(
-        name=pinecone_index_name,
-        dimension=1536,  # Assuming the embedding dimension is 1536
-        metric="cosine",
-        spec=ServerlessSpec(
-            cloud='aws',
-            region='us-west-2'
-        )
-    )
+# if pinecone_index_name not in pc.list_indexes().names():
+    # pc.create_index(
+        # name=pinecone_index_name,
+        # dimension=3072,  # Assuming the embedding dimension is 3072
+        # metric="cosine",
+        # spec=ServerlessSpec(
+            # cloud='aws',
+            # region='us-east-1'
+        # )
+    # )
 
 # Connect to the Pinecone index
 index = pc.Index(pinecone_index_name)
+print(index)
+print(pinecone_index_name)
 
 def fetch_activities(conn):
     cursor = conn.cursor()
@@ -59,7 +61,7 @@ def fetch_activities(conn):
 
 def get_embedding(text):
     response = client.embeddings.create(input=text,
-    model="text-embedding-3-small")
+    model="text-embedding-3-large")
     return response.data[0].embedding
 
 def embed_activities(conn):
