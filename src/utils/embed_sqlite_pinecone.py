@@ -39,8 +39,6 @@ pc = Pinecone(api_key=pinecone_api_key)
 
 # Connect to the Pinecone index
 index = pc.Index(pinecone_index_name)
-print(index)
-print(pinecone_index_name)
 
 def fetch_activities(conn):
     cursor = conn.cursor()
@@ -67,17 +65,22 @@ def get_embedding(text):
 def embed_activities(conn):
     activities = fetch_activities(conn)
     for activity in activities:
+        # Create a combined text from title, description, supplies, and instructions
         text = (
             f"Title: {activity['title']}\n"
-            f"Type: {activity['type']}\n"
             f"Description: {activity['description']}\n"
             f"Supplies: {activity['supplies']}\n"
-            f"Instructions: {activity['instructions']}\n"
-            f"Source: {activity['source']}"
+            f"Instructions: {activity['instructions']}"
         )
+        # Generate embedding for the combined text
         embedding = get_embedding(text)
-        index.upsert(vectors=[{"id": str(activity['id']), "values": embedding}])
-        print(f"Embedded and upserted activity ID {activity['id']}")
+        # Upsert the embedding into Pinecone with the type as metadata
+        index.upsert(vectors=[{
+            "id": str(activity['id']),
+            "values": embedding,
+            "metadata": {"type": activity['type']}
+        }])
+        print(f"Embedded and upserted activity ID {activity['id']} with type {activity['type']}")
     print(f"Total activities embedded and upserted: {len(activities)}")
 
 def main():
