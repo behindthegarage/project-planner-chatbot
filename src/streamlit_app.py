@@ -30,16 +30,19 @@ def fetch_activities_by_ids(activity_ids):
     return activities
 
 def search_activities(keyword, activity_type, top_k=20):
-    """Search for activities based on keyword and filter by type."""
+    """Search for activities based on keyword and optionally filter by type."""
     embedding = get_embedding(keyword)
     query_results = pinecone_index.query(vector=embedding, top_k=top_k, include_metadata=True)
-    filtered_results = [result for result in query_results['matches'] if result['metadata']['type'] == activity_type]
+    if activity_type == "All":
+        filtered_results = query_results['matches']
+    else:
+        filtered_results = [result for result in query_results['matches'] if result['metadata']['type'] == activity_type]
     return [result['id'] for result in filtered_results]
 
 # Streamlit UI
 st.title('Activity Search')
 keyword = st.text_input('Enter a keyword or phrase:')
-activity_type = st.selectbox('Select Activity Type:', options=['Art', 'Craft', 'Science', 'Cooking', 'Physical'])
+activity_type = st.selectbox('Select Activity Type:', options=['All', 'Art', 'Craft', 'Science', 'Cooking', 'Physical'])
 
 if st.button('Search'):
     if keyword:
