@@ -37,7 +37,7 @@ def search_activities(keyword, activity_type, top_k=20):
         filtered_results = query_results['matches']
     else:
         filtered_results = [result for result in query_results['matches'] if result['metadata']['type'] == activity_type]
-    return [result['id'] for result in filtered_results]
+    return filtered_results
 
 # Streamlit UI
 st.title('Activity Search')
@@ -46,11 +46,13 @@ activity_type = st.selectbox('Select Activity Type:', options=['All', 'Art', 'Cr
 
 if st.button('Search'):
     if keyword:
-        activity_ids = search_activities(keyword, activity_type)
-        if activity_ids:
+        results = search_activities(keyword, activity_type)
+        if results:
+            activity_ids = [result['id'] for result in results]
             activities = fetch_activities_by_ids(activity_ids)
             if activities:
-                for activity in activities:
+                for activity, result in zip(activities, results):
+                    st.write(f"Pinecone ID: {result['id']}")
                     st.write(f"ID: {activity[0]}, Title: {activity[1]}, Type: {activity[2]}")
                     st.write(f"Description: {activity[3]}")
                     st.write(f"Supplies: {activity[4]}")
