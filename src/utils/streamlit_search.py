@@ -29,14 +29,6 @@ def fetch_activities_by_ids(activity_ids):
     conn.close()
     return activities
 
-def update_to_do_status(activity_id, to_do_status):
-    """Update the to_do status of an activity in the SQLite database."""
-    conn = sqlite3.connect('activities.db')
-    cursor = conn.cursor()
-    cursor.execute("UPDATE activities SET to_do = ? WHERE id = ?", (to_do_status, activity_id))
-    conn.commit()
-    conn.close()
-
 def search_activities(keyword, activity_type, top_k=20):
     """Search for activities based on keyword and optionally filter by type."""
     embedding = get_embedding(keyword)
@@ -46,6 +38,18 @@ def search_activities(keyword, activity_type, top_k=20):
     else:
         filtered_results = [result for result in query_results['matches'] if result['metadata']['type'] == activity_type]
     return filtered_results
+
+def update_activity(id, title, type, description, supplies, instructions, source, to_do):
+    """Update an activity in the database."""
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE activities
+    SET title = ?, type = ?, description = ?, supplies = ?, instructions = ?, source = ?, to_do = ?
+    WHERE id = ?
+    ''', (title, type, description, supplies, instructions, source, to_do, id))
+    conn.commit()
+    conn.close()
 
 # Streamlit UI
 st.title('Activity Search')
@@ -66,16 +70,11 @@ if st.button('Search'):
                     st.write(f"Supplies: {activity[4]}")
                     st.write(f"Instructions: {activity[5]}")
                     st.write(f"Source: {activity[6]}")
-                    
-                    # Use session state to maintain checkbox state
-                    checkbox_key = f"to_do_{activity[0]}"
-                    to_do_status = st.checkbox('To Do', value=activity[7], key=checkbox_key)
-                    
-                    if to_do_status != st.session_state.get(checkbox_key, activity[7]):
-                        st.session_state[checkbox_key] = to_do_status
-                        update_to_do_status(activity[0], to_do_status)
-                        st.experimental_rerun()
-                    
+                    to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+
+                    if to_do != activity[7]:
+                        update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                        st.rerun()
                     st.write("-----")
             else:
                 st.write("No matching activities found in the database.")

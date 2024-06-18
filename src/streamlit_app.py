@@ -128,11 +128,17 @@ elif choice == "View To Do Activities":
     if todo_activities:
         for activity in todo_activities:
             st.write(f"**{activity[1]}**")  # Title
+            st.write(f"ID: {activity[0]}")  # ID
             st.write(f"Type: {activity[2]}")  # Type
             st.write(f"Description: {activity[3]}")  # Description
             st.write(f"Supplies: {activity[4]}")  # Supplies
             st.write(f"Instructions: {activity[5]}")  # Instructions
             st.write(f"Source: {activity[6]}")  # Source
+            to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+
+            if to_do != activity[7]:
+                update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                st.rerun()
             st.write("---")
     else:
         st.write("No activities to do!")

@@ -19,7 +19,7 @@ def generate_activities(text_content, filename):
 
     For each activity, provide the following details:
     "Activity Title": Extract from text
-    "Type": Choose from Art, Craft, Science, Cooking, Physical
+    "Type": Choose from "Art", "Craft", "Science", "Cooking", "Physical"
     "Description": Write a one sentence description of the activity
     "Supplies": List supplies that may be used for the activity
     "Instructions": Write a set of instructions for the activity

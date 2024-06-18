@@ -29,7 +29,7 @@ def fetch_activities_by_ids(activity_ids):
     conn.close()
     return activities
 
-def search_activities(keyword, top_k=2):
+def search_activities(keyword, top_k=4):
     """Search for activities based on keyword and return top 2 matches for each type."""
     embedding = get_embedding(keyword)
     activity_types = ['Art', 'Craft', 'Science', 'Cooking']
@@ -38,6 +38,18 @@ def search_activities(keyword, top_k=2):
         query_results = pinecone_index.query(vector=embedding, top_k=top_k, filter={"type": activity_type}, include_metadata=True)
         results[activity_type] = [result['id'] for result in query_results['matches']]
     return results
+
+def update_activity(id, title, type, description, supplies, instructions, source, to_do):
+    """Update an activity in the database."""
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE activities
+    SET title = ?, type = ?, description = ?, supplies = ?, instructions = ?, source = ?, to_do = ?
+    WHERE id = ?
+    ''', (title, type, description, supplies, instructions, source, to_do, id))
+    conn.commit()
+    conn.close()
 
 # Streamlit UI
 st.title('Activity Search')
@@ -56,6 +68,11 @@ if st.button('Search'):
                         st.write(f"Supplies: {activity[4]}")
                         st.write(f"Instructions: {activity[5]}")
                         st.write(f"Source: {activity[6]}")
+                        to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+
+                        if to_do != activity[7]:
+                            update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                            st.rerun()
                         st.write("-----")
                 else:
                     st.write(f"No matching {activity_type} activities found in the database.")
