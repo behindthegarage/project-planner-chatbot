@@ -1,5 +1,21 @@
 import streamlit as st
 import sqlite3
+import os
+from pinecone import Pinecone
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Pinecone
+pinecone_api_key = os.getenv('PINECONE_API_KEY')
+pinecone_index_name = os.getenv('PINECONE_INDEX_NAME')
+
+if not pinecone_api_key or not pinecone_index_name:
+    raise ValueError("PINECONE_API_KEY and PINECONE_INDEX_NAME must be set in the environment variables.")
+
+pc = Pinecone(api_key=pinecone_api_key)
+index = pc.Index(pinecone_index_name)
 
 # Function to fetch activities that need to be done
 def get_todo_activities():
@@ -51,13 +67,17 @@ def update_activity(id, title, type, description, supplies, instructions, source
     conn.commit()
     conn.close()
 
-# Function to delete an activity from the database
+# Function to delete an activity from the database and Pinecone
 def delete_activity(id):
+    # Delete from SQLite database
     conn = sqlite3.connect('activities.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM activities WHERE id = ?', (id,))
     conn.commit()
     conn.close()
+
+    # Delete from Pinecone
+    index.delete(ids=[str(id)])
 
 # Streamlit App
 st.title("Summer Camp Activities")
@@ -120,7 +140,7 @@ elif choice == "Delete Activity":
     
     if selected_id and st.button("Delete", key="delete_button"):
         delete_activity(selected_id)
-        st.success("Activity deleted successfully!")
+        st.success("Activity deleted successfully from both SQLite and Pinecone!")
 
 elif choice == "View To Do Activities":
     st.subheader("To Do Activities")
