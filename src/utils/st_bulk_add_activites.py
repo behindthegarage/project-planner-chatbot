@@ -70,15 +70,16 @@ def add_activity(conn, cursor, index, activity):
 
     # Insert the new activity into the database
     insert_query = """
-    INSERT INTO activities (title, type, description, supplies, instructions)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO activities (title, type, description, supplies, instructions, to_do)
+    VALUES (?, ?, ?, ?, ?, ?)
     """
     cursor.execute(insert_query, (
         activity['title'],
         activity.get('type', ''),
         activity.get('description', ''),
         activity.get('supplies', ''),
-        activity.get('instructions', '')
+        activity.get('instructions', ''),
+        True  # Set to_do to True by default
     ))
     conn.commit()
     
@@ -100,7 +101,10 @@ def add_activity(conn, cursor, index, activity):
     index.upsert(vectors=[{
         "id": str(activity_id),
         "values": embedding,
-        "metadata": {"type": activity.get('type', '')}
+        "metadata": {
+            "type": activity.get('type', ''),
+            "to_do": True  # Include to_do in metadata
+        }
     }])
 
 # Streamlit app

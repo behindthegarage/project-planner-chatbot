@@ -51,32 +51,71 @@ def update_activity(id, title, type, description, supplies, instructions, source
     conn.commit()
     conn.close()
 
+def update_multiple_activities(activities_to_update):
+    """Update multiple activities' to_do status in the database."""
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    for activity_id, to_do in activities_to_update.items():
+        cursor.execute('''
+        UPDATE activities
+        SET to_do = ?
+        WHERE id = ?
+        ''', (to_do, activity_id))
+    conn.commit()
+    conn.close()
+
+# Initialize session state for search results and todo states
+if 'search_results' not in st.session_state:
+    st.session_state.search_results = {}
+if 'todo_states' not in st.session_state:
+    st.session_state.todo_states = {}
+
 # Streamlit UI
 st.title('Activity Search')
-theme_description = st.text_input('Enter a theme description:')
-if st.button('Search'):
-    if theme_description:
-        activity_ids_by_type = search_activities(theme_description)
-        for activity_type, ids in activity_ids_by_type.items():
-            if ids:
-                activities = fetch_activities_by_ids(ids)
-                if activities:
-                    st.subheader(f"{activity_type} Activities:")
-                    for activity in activities:
-                        st.write(f"ID: {activity[0]}, Title: {activity[1]}")
-                        st.write(f"Description: {activity[3]}")
-                        st.write(f"Supplies: {activity[4]}")
-                        st.write(f"Instructions: {activity[5]}")
-                        st.write(f"Source: {activity[6]}")
-                        to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
 
-                        if to_do != activity[7]:
-                            update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
-                            st.rerun()
-                        st.write("-----")
-                else:
-                    st.write(f"No matching {activity_type} activities found in the database.")
+# Use a form for the search to prevent automatic reruns
+with st.form(key='search_form'):
+    theme_description = st.text_input('Enter a theme description:')
+    search_button = st.form_submit_button('Search')
+
+if search_button and theme_description:
+    st.session_state.search_results = search_activities(theme_description)
+
+# Display search results and checkboxes
+if st.session_state.search_results:
+    for activity_type, ids in st.session_state.search_results.items():
+        if ids:
+            activities = fetch_activities_by_ids(ids)
+            if activities:
+                st.subheader(f"{activity_type} Activities:")
+                for activity in activities:
+                    st.write(f"ID: {activity[0]}, Title: {activity[1]}")
+                    st.write(f"Description: {activity[3]}")
+                    st.write(f"Supplies: {activity[4]}")
+                    st.write(f"Instructions: {activity[5]}")
+                    st.write(f"Source: {activity[6]}")
+                    
+                    # Use session state to store and retrieve checkbox states
+                    activity_id = activity[0]
+                    if activity_id not in st.session_state.todo_states:
+                        st.session_state.todo_states[activity_id] = activity[7]
+                    
+                    st.session_state.todo_states[activity_id] = st.checkbox(
+                        "To Do",
+                        value=st.session_state.todo_states[activity_id],
+                        key=f"todo_{activity_id}"
+                    )
+                    st.write("-----")
             else:
-                st.write(f"No matching {activity_type} activities found in Pinecone.")
-    else:
-        st.write("Please enter a theme description to search.")
+                st.write(f"No matching {activity_type} activities found in the database.")
+        else:
+            st.write(f"No matching {activity_type} activities found in Pinecone.")
+
+    # Add "Update To Do List" button after displaying all activities
+    if st.button("Update To Do List"):
+        update_multiple_activities(st.session_state.todo_states)
+        st.success("To Do list updated successfully!")
+        st.rerun()
+
+elif search_button:
+    st.write("Please enter a theme description to search.")
