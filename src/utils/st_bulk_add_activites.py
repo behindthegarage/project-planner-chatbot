@@ -70,8 +70,8 @@ def add_activity(conn, cursor, index, activity):
 
     # Insert the new activity into the database
     insert_query = """
-    INSERT INTO activities (title, type, description, supplies, instructions, to_do)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO activities (title, type, description, supplies, instructions, to_do, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     cursor.execute(insert_query, (
         activity['title'],
@@ -79,7 +79,8 @@ def add_activity(conn, cursor, index, activity):
         activity.get('description', ''),
         activity.get('supplies', ''),
         activity.get('instructions', ''),
-        True  # Set to_do to True by default
+        True,  # Set to_do to True by default
+        "AI"   # Set source to "AI"
     ))
     conn.commit()
     

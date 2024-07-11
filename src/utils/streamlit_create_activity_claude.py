@@ -62,7 +62,7 @@ if st.button("Generate Activities"):
                 st.write(f"**Type**: {activity['Type']}")
                 st.write(f"**Description**: {activity['Description']}")
                 st.write("**Supplies**:")
-                st.write("\n".join(activity['Supplies']))
+                st.write(", ".join(activity['Supplies']))  # Changed this line
                 st.write("**Instructions**:")
                 st.write("\n".join(activity['Instructions']))
         else:
