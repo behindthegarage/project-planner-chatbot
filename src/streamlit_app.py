@@ -1,21 +1,24 @@
 import streamlit as st
 import sqlite3
 import os
+import json
+from anthropic import Anthropic
+from openai import OpenAI
 from pinecone import Pinecone
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Initialize Pinecone
-pinecone_api_key = os.getenv('PINECONE_API_KEY')
-pinecone_index_name = os.getenv('PINECONE_INDEX_NAME')
+# Initialize clients
+anthropic_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+pinecone_client = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+pinecone_index = pinecone_client.Index(os.getenv('PINECONE_INDEX_NAME'))
 
-if not pinecone_api_key or not pinecone_index_name:
-    raise ValueError("PINECONE_API_KEY and PINECONE_INDEX_NAME must be set in the environment variables.")
-
-pc = Pinecone(api_key=pinecone_api_key)
-index = pc.Index(pinecone_index_name)
+# Initialize session state for generated activities
+if 'generated_activities' not in st.session_state:
+    st.session_state.generated_activities = []
 
 # Function to fetch activities that need to be done
 def get_todo_activities():
@@ -77,12 +80,121 @@ def delete_activity(id):
     conn.close()
 
     # Delete from Pinecone
-    index.delete(ids=[str(id)])
+    pinecone_index.delete(ids=[str(id)])
+
+# New functions from other files
+def generate_activities(theme):
+    prompt = f"""
+    Given the theme "{theme}", create 3 art, 3 craft, 3 science, 3 cooking, and 3 physical activities for children. For each activity, provide the following details:
+    "Activity Title": Create a title for the activity
+    "Type": Specify "Art" or "Craft" or "Science" or "Cooking" or "Physical"
+    "Description": Write a one sentence description of the activity
+    "Supplies": List supplies that may be used for the activity
+    "Instructions": Write a set of instructions for the activity
+    Output the result as a JSON array, with each activity as a separate object in the array.
+    """
+
+    response = anthropic_client.messages.create(
+        model="claude-3-5-sonnet-20240620",
+        max_tokens=4000,
+        temperature=0.7,
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    api_response_content = response.content[0].text
+
+    try:
+        json_start = api_response_content.find("[")
+        json_end = api_response_content.rfind("]") + 1
+        json_content = api_response_content[json_start:json_end]
+        return json.loads(json_content)
+    except (json.JSONDecodeError, ValueError) as e:
+        st.error(f"Failed to decode JSON from API response. Error: {e}")
+        return None
+
+def get_embedding(text):
+    response = openai_client.embeddings.create(input=text, model="text-embedding-3-large")
+    return response.data[0].embedding
+
+def add_activity(conn, cursor, index, activity):
+    insert_query = """
+    INSERT INTO activities (title, type, description, supplies, instructions, to_do, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """
+    cursor.execute(insert_query, (
+        activity['Activity Title'],
+        activity['Type'],
+        activity['Description'],
+        ', '.join(activity['Supplies']),
+        '\n'.join(activity['Instructions']),
+        True,
+        "AI"
+    ))
+    conn.commit()
+    
+    activity_id = cursor.lastrowid
+    
+    text = (
+        f"Title: {activity['Activity Title']}\n"
+        f"Description: {activity['Description']}\n"
+        f"Supplies: {', '.join(activity['Supplies'])}\n"
+        f"Instructions: {' '.join(activity['Instructions'])}"
+    )
+    
+    embedding = get_embedding(text)
+    
+    index.upsert(vectors=[{
+        "id": str(activity_id),
+        "values": embedding,
+        "metadata": {
+            "type": activity['Type'],
+            "to_do": True
+        }
+    }])
+
+def parse_activities(text):
+    activities = []
+    current_activity = {}
+    current_field = None
+
+    for line in text.split('\n'):
+        line = line.strip()
+        if not line:
+            if current_activity:
+                activities.append(current_activity)
+                current_activity = {}
+            current_field = None
+        elif ':' in line:
+            key, value = line.split(':', 1)
+            key = key.lower()
+            if key in ['type', 'description', 'supplies', 'instructions']:
+                current_activity[key] = value.strip()
+                current_field = key
+            elif 'title' not in current_activity:
+                current_activity['title'] = line.strip()
+        elif 'title' not in current_activity:
+            current_activity['title'] = line
+        elif current_field:
+            current_activity[current_field] += ' ' + line
+
+    if current_activity:
+        activities.append(current_activity)
+
+    return activities
+
+def search_activities(keyword, top_k=4):
+    embedding = get_embedding(keyword)
+    activity_types = ['Art', 'Craft', 'Science', 'Cooking', 'Physical']
+    results = {}
+    for activity_type in activity_types:
+        query_results = pinecone_index.query(vector=embedding, top_k=top_k, filter={"type": activity_type}, include_metadata=True)
+        results[activity_type] = [result['id'] for result in query_results['matches']]
+    return results
 
 # Streamlit App
 st.title("Summer Camp Activities")
 
-menu = ["Add Activity", "View Activities", "Edit Activity", "Delete Activity", "View To Do Activities", "View Supplies List"]
+menu = ["Add Activity", "View Activities", "Edit Activity", "Delete Activity", "View To Do Activities", "View Supplies List", "Generate Activities", "Bulk Add Activities", "Theme Planning"]
 choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
 
 if choice == "Add Activity":
@@ -198,3 +310,124 @@ elif choice == "View Supplies List":
             ''', unsafe_allow_html=True)
     else:
         st.write("No supplies needed for the activities!")
+
+elif choice == "Generate Activities":
+    st.subheader("Generate Activities")
+    theme = st.text_input("Enter a theme for the activities:")
+
+    if st.button("Generate Activities"):
+        if theme:
+            activities = generate_activities(theme)
+            if activities:
+                st.session_state.generated_activities = activities
+                st.success("Activities generated successfully!")
+            else:
+                st.error("No activities generated.")
+        else:
+            st.error("Please enter a theme.")
+
+    if st.session_state.generated_activities:
+        for i, activity in enumerate(st.session_state.generated_activities):
+            st.subheader(activity["Activity Title"])
+            st.write(f"**Type**: {activity['Type']}")
+            st.write(f"**Description**: {activity['Description']}")
+            st.write("**Supplies**:")
+            st.write(", ".join(activity['Supplies']))
+            st.write("**Instructions**:")
+            st.write("\n".join(activity['Instructions']))
+            
+            key = f"checkbox_{i}_{activity['Activity Title']}"
+            activity['selected'] = st.checkbox("Select this activity", key=key, value=activity.get('selected', False))
+
+        if st.button("Add Selected Activities"):
+            selected_activities = [a for a in st.session_state.generated_activities if a.get('selected', False)]
+            if selected_activities:
+                conn = sqlite3.connect('activities.db')
+                cursor = conn.cursor()
+                
+                success_count = 0
+                for activity in selected_activities:
+                    try:
+                        add_activity(conn, cursor, pinecone_index, activity)
+                        success_count += 1
+                    except Exception as e:
+                        st.error(f"Error adding activity '{activity['Activity Title']}': {str(e)}")
+                
+                conn.close()
+                
+                if success_count > 0:
+                    st.success(f'{success_count} activities added and embedded successfully!')
+                    # Clear the generated activities after successful addition
+                    st.session_state.generated_activities = []
+                    st.rerun()
+                if success_count < len(selected_activities):
+                    st.warning(f'{len(selected_activities) - success_count} activities failed to add. Please check the errors above.')
+            else:
+                st.warning("No activities selected. Please select at least one activity to add.")
+
+elif choice == "Bulk Add Activities":
+    st.subheader("Bulk Add Activities")
+    activities_input = st.text_area('Enter multiple activities (separate each activity with a blank line)', height=300)
+
+    if st.button('Add Activities'):
+        if activities_input:
+            activities = parse_activities(activities_input)
+            
+            conn = sqlite3.connect('activities.db')
+            cursor = conn.cursor()
+            
+            success_count = 0
+            for activity in activities:
+                try:
+                    add_activity(conn, cursor, pinecone_index, activity)
+                    success_count += 1
+                except ValueError as e:
+                    st.error(f"Error adding activity: {str(e)}")
+                except Exception as e:
+                    st.error(f"Unexpected error adding activity: {str(e)}")
+            
+            conn.close()
+            
+            if success_count > 0:
+                st.success(f'{success_count} activities added and embedded successfully!')
+            if success_count < len(activities):
+                st.warning(f'{len(activities) - success_count} activities failed to add. Please check the errors above.')
+        else:
+            st.error('Please enter at least one activity.')
+
+elif choice == "Theme Planning":
+    st.subheader("Theme Planning")
+    theme_description = st.text_input('Enter a theme description:')
+
+    if 'theme_search_results' not in st.session_state:
+        st.session_state.theme_search_results = {}
+
+    if st.button('Search'):
+        if theme_description:
+            st.session_state.theme_search_results = search_activities(theme_description)
+        else:
+            st.error("Please enter a theme description to search.")
+
+    if st.session_state.theme_search_results:
+        for activity_type, ids in st.session_state.theme_search_results.items():
+            if ids:
+                activities = get_activities_by_ids(ids)
+                if activities:
+                    st.subheader(f"{activity_type} Activities:")
+                    for activity in activities:
+                        st.write(f"ID: {activity[0]}, Title: {activity[1]}")
+                        st.write(f"Description: {activity[3]}")
+                        st.write(f"Supplies: {activity[4]}")
+                        st.write(f"Instructions: {activity[5]}")
+                        st.write(f"Source: {activity[6]}")
+                        
+                        key = f"todo_{activity[0]}"
+                        to_do = st.checkbox("To Do", value=activity[7], key=key)
+                        if to_do != activity[7]:
+                            update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                            st.rerun()
+                        st.write("-----")
+                else:
+                    st.write(f"No matching {activity_type} activities found in the database.")
+            else:
+                st.write(f"No matching {activity_type} activities found in Pinecone.")
