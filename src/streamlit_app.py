@@ -191,10 +191,21 @@ def search_activities(keyword, top_k=4):
         results[activity_type] = [result['id'] for result in query_results['matches']]
     return results
 
-# Streamlit App
-st.title("Summer Camp Activities")
+# Add this new function after the other database-related functions
+def get_activities_by_ids(ids):
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    placeholders = ', '.join('?' for _ in ids)
+    query = f"SELECT * FROM activities WHERE id IN ({placeholders})"
+    cursor.execute(query, ids)
+    activities = cursor.fetchall()
+    conn.close()
+    return activities
 
-menu = ["Add Activity", "View Activities", "Edit Activity", "Delete Activity", "View To Do Activities", "View Supplies List", "Generate Activities", "Bulk Add Activities", "Theme Planning"]
+# Streamlit App
+st.title("Activity Planner")
+
+menu = ["Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "Delete Activity", "View Activities"]
 choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
 
 if choice == "Add Activity":
@@ -395,8 +406,8 @@ elif choice == "Bulk Add Activities":
         else:
             st.error('Please enter at least one activity.')
 
-elif choice == "Theme Planning":
-    st.subheader("Theme Planning")
+elif choice == "Theme Search":
+    st.subheader("Theme Search")
     theme_description = st.text_input('Enter a theme description:')
 
     if 'theme_search_results' not in st.session_state:
@@ -415,7 +426,9 @@ elif choice == "Theme Planning":
                 if activities:
                     st.subheader(f"{activity_type} Activities:")
                     for activity in activities:
-                        st.write(f"ID: {activity[0]}, Title: {activity[1]}")
+                        st.write(f"ID: {activity[0]}")
+                        st.write(f"**Title: {activity[1]}**")
+                        st.write(f"Type: {activity[2]}")
                         st.write(f"Description: {activity[3]}")
                         st.write(f"Supplies: {activity[4]}")
                         st.write(f"Instructions: {activity[5]}")
