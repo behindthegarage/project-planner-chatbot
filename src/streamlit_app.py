@@ -263,7 +263,7 @@ elif choice == "View Activities":
     colored_header(label="All Activities", description="View all stored activities", color_name="green-70")
     activities = get_activities()
     for activity in activities:
-        with st.expander(f"{activity[1]} ({activity[2]})"):
+        with st.expander(f"{activity[1]} ({activity[2]}) (ID: {activity[0]})"):
             st.write(f"**Description:** {activity[3]}")
             st.write(f"**Supplies:** {activity[4]}")
             st.write(f"**Instructions:** {activity[5]}")
@@ -320,21 +320,20 @@ elif choice == "View To Do Activities":
 
 elif choice == "View Supplies List":
     colored_header(label="Supplies List", description="View supplies for all to-do activities", color_name="blue-70")
-    supplies_list = get_supplies_list()
-    if supplies_list:
-        supplies_container = st.container()
-        with supplies_container:
-            for supplies in supplies_list:
-                items = supplies[0].split(',')  # Assuming supplies are comma-separated
-                for item in items:
-                    st.write(f"- {item.strip()}")
+    todo_activities = get_todo_activities()
+    if todo_activities:
+        for activity in todo_activities:
+            st.markdown(f"##### {activity[1]}")
+            supplies = [supply.strip() for supply in activity[4].split(',')]
+            st.write(", ".join(supplies))
+            st.write("---")
         
         if st.button("Print Supplies List"):
             printable_supplies = ''
-            for supplies in supplies_list:
-                items = supplies[0].split(',')
-                for item in items:
-                    printable_supplies += f"- {item.strip()}<br>"
+            for activity in todo_activities:
+                printable_supplies += f"<h3>{activity[1]} (ID: {activity[0]})</h3>"
+                supplies = [supply.strip() for supply in activity[4].split(',')]
+                printable_supplies += f"{', '.join(supplies)}<br><hr>"
             
             st.markdown(f'''
                 <div style="display: none;">
@@ -352,7 +351,7 @@ elif choice == "View Supplies List":
                 </script>
             ''', unsafe_allow_html=True)
     else:
-        st.info("No supplies needed for the activities!")
+        st.info("No activities to do!")
 
 elif choice == "Generate Activities":
     colored_header(label="Generate Activities", description="Use AI to create new activities based on a theme or idea", color_name="green-70")
