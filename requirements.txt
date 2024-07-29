@@ -47,6 +47,7 @@ tiktoken
 
 # streamlit
 streamlit
+streamlit-extras
 
 # Google API
 google-api-python-client
@@ -59,4 +60,4 @@ bs4
 
 # dedupe_sqlite_python.py
 numpy
-# pickle
+# picklestreamlit-extras
