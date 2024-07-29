@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import sqlite3
 import os
 import json
@@ -223,10 +224,26 @@ st.set_page_config(page_title="Activity Planner", page_icon="🎨", layout="wide
 
 st.title("🎨 Activity Planner")
 
-# Sidebar menu
-st.sidebar.title("Menu")
-menu_options = ["Home", "Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "View Activities"]
-choice = st.sidebar.radio("Select an option", menu_options)
+# Sidebar menu using streamlit-option-menu
+with st.sidebar:
+    st.title("Menu")
+    choice = option_menu(
+        menu_title=None,
+        options=[
+            "Home", "Theme Search", "Generate Activities", 
+            "View To Do Activities", "View Supplies List", 
+            "Bulk Add Activities", "Add Activity", 
+            "Edit Activity", "View Activities"
+        ],
+        icons=[
+            'house', 'search', 'magic', 
+            'list-check', 'cart', 
+            'file-earmark-plus', 'plus-circle', 
+            'pencil', 'eye'
+        ],
+        menu_icon="cast",
+        default_index=0,
+    )
 
 # Main content area
 if choice == "Home":
@@ -262,13 +279,25 @@ elif choice == "Add Activity":
 elif choice == "View Activities":
     colored_header(label="All Activities", description="View all stored activities", color_name="green-70")
     activities = get_activities()
+    
+    # Sort activities by type
+    activities_by_type = {}
     for activity in activities:
-        with st.expander(f"{activity[1]} ({activity[2]}) (ID: {activity[0]})"):
-            st.write(f"**Description:** {activity[3]}")
-            st.write(f"**Supplies:** {activity[4]}")
-            st.write(f"**Instructions:** {activity[5]}")
-            st.write(f"**Source:** {activity[6]}")
-            st.write(f"**To Do:** {'Yes' if activity[7] else 'No'}")
+        activity_type = activity[2]  # The type is at index 2
+        if activity_type not in activities_by_type:
+            activities_by_type[activity_type] = []
+        activities_by_type[activity_type].append(activity)
+    
+    # Display activities sorted by type
+    for activity_type in sorted(activities_by_type.keys()):
+        st.subheader(f"{activity_type} Activities")
+        for activity in activities_by_type[activity_type]:
+            with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                st.write(f"**Description:** {activity[3]}")
+                st.write(f"**Supplies:** {activity[4]}")
+                st.write(f"**Instructions:** {activity[5]}")
+                st.write(f"**Source:** {activity[6]}")
+                st.write(f"**To Do:** {'Yes' if activity[7] else 'No'}")
 
 elif choice == "Edit Activity":
     colored_header(label="Edit Activity", description="Modify an existing activity", color_name="orange-70")
@@ -319,13 +348,15 @@ elif choice == "View To Do Activities":
         st.info("No activities to do!")
 
 elif choice == "View Supplies List":
-    colored_header(label="Supplies List", description="View supplies for all to-do activities", color_name="blue-70")
+    st.subheader("Supplies List")
+    st.caption("View supplies for all to-do activities")
     todo_activities = get_todo_activities()
     if todo_activities:
         for activity in todo_activities:
-            st.markdown(f"##### {activity[1]}")
+            st.markdown(f"**{activity[1]}**")
             supplies = [supply.strip() for supply in activity[4].split(',')]
-            st.write(", ".join(supplies))
+            supplies_html = "<br>".join([f"&nbsp;&nbsp;{supply}" for supply in supplies])
+            st.markdown(f'<div style="line-height: 1;">{supplies_html}</div>', unsafe_allow_html=True)
             st.write("---")
         
         if st.button("Print Supplies List"):
@@ -333,7 +364,10 @@ elif choice == "View Supplies List":
             for activity in todo_activities:
                 printable_supplies += f"<h3>{activity[1]} (ID: {activity[0]})</h3>"
                 supplies = [supply.strip() for supply in activity[4].split(',')]
-                printable_supplies += f"{', '.join(supplies)}<br><hr>"
+                printable_supplies += '<div style="line-height: 1.2;">'
+                for supply in supplies:
+                    printable_supplies += f"&nbsp;&nbsp;{supply}<br>"
+                printable_supplies += "</div><hr>"
             
             st.markdown(f'''
                 <div style="display: none;">
@@ -409,7 +443,26 @@ elif choice == "Generate Activities":
 
 elif choice == "Bulk Add Activities":
     colored_header(label="Bulk Add Activities", description="Add multiple activities at once", color_name="orange-70")
-    activities_input = st.text_area('Enter multiple activities (separate each activity with a blank line)', height=300)
+    
+    st.markdown("""
+    Enter multiple activities (separate each activity with a blank line):
+    
+    Example format:
+    ```
+    Fairy Jar Night Light
+    Type: Craft
+    Description: Make a magical fairy jar night light using a mason jar and fairy lights.
+    Supplies:
+    Mason jar, Fairy lights, Tissue paper, Glue, Scissors, Glitter
+    Instructions:
+    1. Cut small shapes from tissue paper.
+    2. Glue the shapes to the outside of the jar.
+    3. Sprinkle glitter inside the jar.
+    4. Place fairy lights inside and secure the lid.
+    ```
+    """)
+    
+    activities_input = st.text_area('Enter activities here:', height=300)
 
     if st.button('Add Activities'):
         if activities_input:
