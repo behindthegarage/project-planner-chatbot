@@ -47,6 +47,7 @@ tiktoken
 
 # streamlit
 streamlit
+streamlit-extras
 
 # Google API
 google-api-python-client

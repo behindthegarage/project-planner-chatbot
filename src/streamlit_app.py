@@ -6,6 +6,9 @@ from anthropic import Anthropic
 from openai import OpenAI
 from pinecone import Pinecone
 from dotenv import load_dotenv
+from streamlit_extras.colored_header import colored_header
+from streamlit_extras.app_logo import add_logo
+import random
 
 # Load environment variables
 load_dotenv()
@@ -202,14 +205,48 @@ def get_activities_by_ids(ids):
     conn.close()
     return activities
 
+# New function to get random activities for each type
+def get_random_activities():
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    activity_types = ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"]
+    random_activities = {}
+    for activity_type in activity_types:
+        cursor.execute('SELECT * FROM activities WHERE type = ? ORDER BY RANDOM() LIMIT 2', (activity_type,))
+        random_activities[activity_type] = cursor.fetchall()
+    conn.close()
+    return random_activities
+
 # Streamlit App
-st.title("Activity Planner")
+st.set_page_config(page_title="Activity Planner", page_icon="🎨", layout="wide")
+# add_logo("path/to/your/logo.png")  # Add your logo image
 
-menu = ["Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "Delete Activity", "View Activities"]
-choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
+st.title("🎨 Activity Planner")
 
-if choice == "Add Activity":
-    st.subheader("Add New Activity")
+# Sidebar menu
+st.sidebar.title("Menu")
+menu_options = ["Home", "Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "Delete Activity", "View Activities"]
+choice = st.sidebar.radio("Select an option", menu_options)
+
+# Main content area
+if choice == "Home":
+    colored_header(label="Featured Activities", description="Random activities for each type", color_name="blue-70")
+    random_activities = get_random_activities()
+    for activity_type, activities in random_activities.items():
+        st.subheader(f"{activity_type}")
+        for activity in activities:
+            with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                st.write(f"**Description:** {activity[3]}")
+                st.write(f"**Supplies:** {activity[4]}")
+                st.write(f"**Instructions:** {activity[5]}")
+                st.write(f"**Source:** {activity[6]}")
+                to_do = st.checkbox("Add to To-Do List", value=activity[7], key=f"home_todo_{activity[0]}")
+                if to_do != activity[7]:
+                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                    st.rerun()
+
+elif choice == "Add Activity":
+    colored_header(label="Add New Activity", description="Create a new activity", color_name="blue-70")
     title = st.text_input("Title", key="add_title")
     type = st.selectbox("Type", ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"], key="add_type")
     description = st.text_area("Description", key="add_description")
@@ -223,20 +260,18 @@ if choice == "Add Activity":
         st.success(f"Activity '{title}' added successfully!")
 
 elif choice == "View Activities":
-    st.subheader("All Activities")
+    colored_header(label="All Activities", description="View all stored activities", color_name="green-70")
     activities = get_activities()
     for activity in activities:
-        st.write(f"**{activity[1]}**")
-        st.write(f"Type: {activity[2]}")
-        st.write(f"Description: {activity[3]}")
-        st.write(f"Supplies: {activity[4]}")
-        st.write(f"Instructions: {activity[5]}")
-        st.write(f"Source: {activity[6]}")
-        st.write(f"To Do: {'Yes' if activity[7] else 'No'}")
-        st.write("---")
+        with st.expander(f"{activity[1]} ({activity[2]})"):
+            st.write(f"**Description:** {activity[3]}")
+            st.write(f"**Supplies:** {activity[4]}")
+            st.write(f"**Instructions:** {activity[5]}")
+            st.write(f"**Source:** {activity[6]}")
+            st.write(f"**To Do:** {'Yes' if activity[7] else 'No'}")
 
 elif choice == "Edit Activity":
-    st.subheader("Edit Activity")
+    colored_header(label="Edit Activity", description="Modify an existing activity", color_name="orange-70")
     activities = get_activities()
     activity_ids = [activity[0] for activity in activities]
     selected_id = st.selectbox("Select Activity ID", activity_ids, key="edit_select_id")
@@ -256,7 +291,7 @@ elif choice == "Edit Activity":
             st.success(f"Activity '{title}' updated successfully!")
 
 elif choice == "Delete Activity":
-    st.subheader("Delete Activity")
+    colored_header(label="Delete Activity", description="Remove an activity from the database", color_name="red-70")
     activities = get_activities()
     activity_ids = [activity[0] for activity in activities]
     selected_id = st.selectbox("Select Activity ID", activity_ids, key="delete_select_id")
@@ -266,28 +301,25 @@ elif choice == "Delete Activity":
         st.success("Activity deleted successfully from both SQLite and Pinecone!")
 
 elif choice == "View To Do Activities":
-    st.subheader("To Do Activities")
+    colored_header(label="To Do Activities", description="View and manage activities to be done", color_name="violet-70")
     todo_activities = get_todo_activities()
     if todo_activities:
         for activity in todo_activities:
-            st.write(f"**{activity[1]}**")  # Title
-            st.write(f"ID: {activity[0]}")  # ID
-            st.write(f"Type: {activity[2]}")  # Type
-            st.write(f"Description: {activity[3]}")  # Description
-            st.write(f"Supplies: {activity[4]}")  # Supplies
-            st.write(f"Instructions: {activity[5]}")  # Instructions
-            st.write(f"Source: {activity[6]}")  # Source
-            to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
-
-            if to_do != activity[7]:
-                update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
-                st.rerun()
-            st.write("---")
+            with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                st.write(f"**Type:** {activity[2]}")
+                st.write(f"**Description:** {activity[3]}")
+                st.write(f"**Supplies:** {activity[4]}")
+                st.write(f"**Instructions:** {activity[5]}")
+                st.write(f"**Source:** {activity[6]}")
+                to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+                if to_do != activity[7]:
+                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                    st.rerun()
     else:
-        st.write("No activities to do!")
+        st.info("No activities to do!")
 
 elif choice == "View Supplies List":
-    st.subheader("Supplies List for All To Do Activities")
+    colored_header(label="Supplies List", description="View supplies for all to-do activities", color_name="blue-70")
     supplies_list = get_supplies_list()
     if supplies_list:
         supplies_container = st.container()
@@ -320,10 +352,10 @@ elif choice == "View Supplies List":
                 </script>
             ''', unsafe_allow_html=True)
     else:
-        st.write("No supplies needed for the activities!")
+        st.info("No supplies needed for the activities!")
 
 elif choice == "Generate Activities":
-    st.subheader("Generate Activities")
+    colored_header(label="Generate Activities", description="Create new activities based on a theme", color_name="green-70")
     theme = st.text_input("Enter a theme for the activities:")
 
     if st.button("Generate Activities"):
@@ -377,7 +409,7 @@ elif choice == "Generate Activities":
                 st.warning("No activities selected. Please select at least one activity to add.")
 
 elif choice == "Bulk Add Activities":
-    st.subheader("Bulk Add Activities")
+    colored_header(label="Bulk Add Activities", description="Add multiple activities at once", color_name="orange-70")
     activities_input = st.text_area('Enter multiple activities (separate each activity with a blank line)', height=300)
 
     if st.button('Add Activities'):
@@ -407,7 +439,7 @@ elif choice == "Bulk Add Activities":
             st.error('Please enter at least one activity.')
 
 elif choice == "Theme Search":
-    st.subheader("Theme Search")
+    colored_header(label="Theme Search", description="Find activities based on a theme", color_name="blue-70")
     theme_description = st.text_input('Enter a theme description:')
 
     if 'theme_search_results' not in st.session_state:
@@ -426,21 +458,21 @@ elif choice == "Theme Search":
                 if activities:
                     st.subheader(f"{activity_type} Activities:")
                     for activity in activities:
-                        st.write(f"ID: {activity[0]}")
-                        st.write(f"**Title: {activity[1]}**")
-                        st.write(f"Type: {activity[2]}")
-                        st.write(f"Description: {activity[3]}")
-                        st.write(f"Supplies: {activity[4]}")
-                        st.write(f"Instructions: {activity[5]}")
-                        st.write(f"Source: {activity[6]}")
-                        
-                        key = f"todo_{activity[0]}"
-                        to_do = st.checkbox("To Do", value=activity[7], key=key)
-                        if to_do != activity[7]:
-                            update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
-                            st.rerun()
-                        st.write("-----")
+                        with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                            st.write(f"**Type:** {activity[2]}")
+                            st.write(f"**Description:** {activity[3]}")
+                            st.write(f"**Supplies:** {activity[4]}")
+                            st.write(f"**Instructions:** {activity[5]}")
+                            st.write(f"**Source:** {activity[6]}")
+                            to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+                            if to_do != activity[7]:
+                                update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                                st.rerun()
                 else:
-                    st.write(f"No matching {activity_type} activities found in the database.")
+                    st.info(f"No matching {activity_type} activities found in the database.")
             else:
-                st.write(f"No matching {activity_type} activities found in Pinecone.")
+                st.info(f"No matching {activity_type} activities found in Pinecone.")
+
+# Add a footer
+st.markdown("---")
+st.markdown("Created with ❤️ by Mr. Brussow")
