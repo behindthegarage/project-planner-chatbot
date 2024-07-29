@@ -225,7 +225,7 @@ st.title("🎨 Activity Planner")
 
 # Sidebar menu
 st.sidebar.title("Menu")
-menu_options = ["Home", "Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "Delete Activity", "View Activities"]
+menu_options = ["Home", "Theme Search", "Generate Activities", "View To Do Activities", "View Supplies List", "Bulk Add Activities", "Add Activity", "Edit Activity", "View Activities"]
 choice = st.sidebar.radio("Select an option", menu_options)
 
 # Main content area
