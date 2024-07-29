@@ -230,7 +230,7 @@ with st.sidebar:
     choice = option_menu(
         menu_title=None,
         options=[
-            "Home", "Theme Search", "Generate Activities", 
+            "Home", "Theme Search", "Generate Activities (AI)", 
             "View To Do Activities", "View Supplies List", 
             "Bulk Add Activities", "Add Activity", 
             "Edit Activity", "View Activities"
@@ -387,7 +387,7 @@ elif choice == "View Supplies List":
     else:
         st.info("No activities to do!")
 
-elif choice == "Generate Activities":
+elif choice == "Generate Activities (AI)":
     colored_header(label="Generate Activities", description="Use AI to create new activities based on a theme or idea", color_name="green-70")
     theme = st.text_input("Enter a theme:")
 
