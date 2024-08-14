@@ -52,25 +52,25 @@ def get_activities():
     return activities
 
 # Function to add an activity to the database
-def add_activity(title, type, description, supplies, instructions, source, to_do):
+def add_activity(title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations):
     conn = sqlite3.connect('activities.db')
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO activities (title, type, description, supplies, instructions, source, to_do)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (title, type, description, supplies, instructions, source, to_do))
+    INSERT INTO activities (title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations))
     conn.commit()
     conn.close()
 
 # Function to update an activity in the database
-def update_activity(id, title, type, description, supplies, instructions, source, to_do):
+def update_activity(id, title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations):
     conn = sqlite3.connect('activities.db')
     cursor = conn.cursor()
     cursor.execute('''
     UPDATE activities
-    SET title = ?, type = ?, description = ?, supplies = ?, instructions = ?, source = ?, to_do = ?
+    SET title = ?, type = ?, description = ?, supplies = ?, instructions = ?, source = ?, to_do = ?, development_age_group = ?, development_group_justification = ?, adaptations = ?
     WHERE id = ?
-    ''', (title, type, description, supplies, instructions, source, to_do, id))
+    ''', (title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations, id))
     conn.commit()
     conn.close()
 
@@ -122,8 +122,8 @@ def get_embedding(text):
 
 def add_activity(conn, cursor, index, activity):
     insert_query = """
-    INSERT INTO activities (title, type, description, supplies, instructions, to_do, source)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO activities (title, type, description, supplies, instructions, to_do, source, development_age_group, development_group_justification, adaptations)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     cursor.execute(insert_query, (
         activity['Activity Title'],
@@ -132,7 +132,10 @@ def add_activity(conn, cursor, index, activity):
         ', '.join(activity['Supplies']),
         '\n'.join(activity['Instructions']),
         True,
-        "AI"
+        "AI",
+        activity.get('Development Age Group', 'Not specified'),
+        activity.get('Development Group Justification', ''),
+        activity.get('Adaptations', '')
     ))
     conn.commit()
     
@@ -257,77 +260,102 @@ if choice == "Home":
                 st.write(f"**Supplies:** {activity[4]}")
                 st.write(f"**Instructions:** {activity[5]}")
                 st.write(f"**Source:** {activity[6]}")
+                st.write(f"**Development Age Group:** {activity[8] if activity[8] else 'Not specified'}")
                 to_do = st.checkbox("Add to To-Do List", value=activity[7], key=f"home_todo_{activity[0]}")
                 if to_do != activity[7]:
-                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do, activity[8], activity[9], activity[10])
                     st.rerun()
 
-elif choice == "Add Activity":
-    colored_header(label="Add New Activity", description="Create a new activity", color_name="blue-70")
-    title = st.text_input("Title", key="add_title")
-    type = st.selectbox("Type", ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"], key="add_type")
-    description = st.text_area("Description", key="add_description")
-    supplies = st.text_area("Supplies", key="add_supplies")
-    instructions = st.text_area("Instructions", key="add_instructions")
-    source = st.text_input("Source", key="add_source")
-    to_do = st.checkbox("To Do", key="add_to_do")
-    
-    if st.button("Add", key="add_button"):
-        add_activity(title, type, description, supplies, instructions, source, to_do)
-        st.success(f"Activity '{title}' added successfully!")
+elif choice == "Theme Search":
+    colored_header(label="Theme Search", description="Find activities based on a theme", color_name="blue-70")
+    theme_description = st.text_input('Enter a theme description:')
 
-elif choice == "View Activities":
-    colored_header(label="All Activities", description="View all stored activities", color_name="green-70")
-    activities = get_activities()
-    
-    # Sort activities by type
-    activities_by_type = {}
-    for activity in activities:
-        activity_type = activity[2]  # The type is at index 2
-        if activity_type not in activities_by_type:
-            activities_by_type[activity_type] = []
-        activities_by_type[activity_type].append(activity)
-    
-    # Display activities sorted by type
-    for activity_type in sorted(activities_by_type.keys()):
-        st.subheader(f"{activity_type} Activities")
-        for activity in activities_by_type[activity_type]:
-            with st.expander(f"{activity[1]} (ID: {activity[0]})"):
-                st.write(f"**Description:** {activity[3]}")
-                st.write(f"**Supplies:** {activity[4]}")
-                st.write(f"**Instructions:** {activity[5]}")
-                st.write(f"**Source:** {activity[6]}")
-                st.write(f"**To Do:** {'Yes' if activity[7] else 'No'}")
+    if 'theme_search_results' not in st.session_state:
+        st.session_state.theme_search_results = {}
 
-elif choice == "Edit Activity":
-    colored_header(label="Edit Activity", description="Modify an existing activity", color_name="orange-70")
-    activities = get_activities()
-    activity_ids = [activity[0] for activity in activities]
-    selected_id = st.selectbox("Select Activity ID", activity_ids, key="edit_select_id")
-    
-    if selected_id:
-        activity = [a for a in activities if a[0] == selected_id][0]
-        title = st.text_input("Title", activity[1], key="edit_title")
-        type = st.selectbox("Type", ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"], index=["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"].index(activity[2]), key="edit_type")
-        description = st.text_area("Description", activity[3], key="edit_description")
-        supplies = st.text_area("Supplies", activity[4], key="edit_supplies")
-        instructions = st.text_area("Instructions", activity[5], key="edit_instructions")
-        source = st.text_input("Source", activity[6], key="edit_source")
-        to_do = st.checkbox("To Do", activity[7], key="edit_to_do")
-        
-        if st.button("Update", key="edit_button"):
-            update_activity(selected_id, title, type, description, supplies, instructions, source, to_do)
-            st.success(f"Activity '{title}' updated successfully!")
+    if st.button('Search'):
+        if theme_description:
+            st.session_state.theme_search_results = search_activities(theme_description)
+        else:
+            st.error("Please enter a theme description to search.")
 
-elif choice == "Delete Activity":
-    colored_header(label="Delete Activity", description="Remove an activity from the database", color_name="red-70")
-    activities = get_activities()
-    activity_ids = [activity[0] for activity in activities]
-    selected_id = st.selectbox("Select Activity ID", activity_ids, key="delete_select_id")
-    
-    if selected_id and st.button("Delete", key="delete_button"):
-        delete_activity(selected_id)
-        st.success("Activity deleted successfully from both SQLite and Pinecone!")
+    if st.session_state.theme_search_results:
+        for activity_type, ids in st.session_state.theme_search_results.items():
+            if ids:
+                activities = get_activities_by_ids(ids)
+                if activities:
+                    st.subheader(f"{activity_type} Activities:")
+                    for activity in activities:
+                        with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                            st.write(f"**Type:** {activity[2]}")
+                            st.write(f"**Description:** {activity[3]}")
+                            st.write(f"**Supplies:** {activity[4]}")
+                            st.write(f"**Instructions:** {activity[5]}")
+                            st.write(f"**Source:** {activity[6]}")
+                            st.write(f"**Development Age Group:** {activity[8] if activity[8] else 'Not specified'}")
+                            to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
+                            if to_do != activity[7]:
+                                update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do, activity[8], activity[9], activity[10])
+                                st.rerun()
+                else:
+                    st.info(f"No matching {activity_type} activities found in the database.")
+            else:
+                st.info(f"No matching {activity_type} activities found in Pinecone.")
+
+elif choice == "Generate Activities (AI)":
+    colored_header(label="Generate Activities", description="Use AI to create new activities based on a theme or idea", color_name="green-70")
+    theme = st.text_input("Enter a theme:")
+
+    if st.button("Generate Activities"):
+        if theme:
+            activities = generate_activities(theme)
+            if activities:
+                st.session_state.generated_activities = activities
+                st.success("Activities generated successfully!")
+            else:
+                st.error("No activities generated.")
+        else:
+            st.error("Please enter a theme.")
+
+    if st.session_state.generated_activities:
+        for i, activity in enumerate(st.session_state.generated_activities):
+            st.subheader(activity["Activity Title"])
+            st.write(f"**Type**: {activity['Type']}")
+            st.write(f"**Description**: {activity['Description']}")
+            st.write("**Supplies**:")
+            st.write(", ".join(activity['Supplies']))
+            st.write("**Instructions**:")
+            st.write("\n".join(activity['Instructions']))
+            st.write(f"**Development Age Group**: {activity.get('Development Age Group', 'Not specified')}")
+            
+            key = f"checkbox_{i}_{activity['Activity Title']}"
+            activity['selected'] = st.checkbox("Select this activity", key=key, value=activity.get('selected', False))
+
+        if st.button("Add Selected Activities"):
+            selected_activities = [a for a in st.session_state.generated_activities if a.get('selected', False)]
+            if selected_activities:
+                conn = sqlite3.connect('activities.db')
+                cursor = conn.cursor()
+                
+                success_count = 0
+                for activity in selected_activities:
+                    try:
+                        add_activity(conn, cursor, pinecone_index, activity)
+                        success_count += 1
+                    except Exception as e:
+                        st.error(f"Error adding activity '{activity['Activity Title']}': {str(e)}")
+                
+                conn.close()
+                
+                if success_count > 0:
+                    st.success(f'{success_count} activities added and embedded successfully!')
+                    # Clear the generated activities after successful addition
+                    st.session_state.generated_activities = []
+                    st.rerun()
+                if success_count < len(selected_activities):
+                    st.warning(f'{len(selected_activities) - success_count} activities failed to add. Please check the errors above.')
+            else:
+                st.warning("No activities selected. Please select at least one activity to add.")
 
 elif choice == "View To Do Activities":
     colored_header(label="To Do Activities", description="View and manage activities to be done", color_name="violet-70")
@@ -340,9 +368,10 @@ elif choice == "View To Do Activities":
                 st.write(f"**Supplies:** {activity[4]}")
                 st.write(f"**Instructions:** {activity[5]}")
                 st.write(f"**Source:** {activity[6]}")
+                st.write(f"**Development Age Group:** {activity[8] if activity[8] else 'Not specified'}")
                 to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
                 if to_do != activity[7]:
-                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
+                    update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do, activity[8], activity[9], activity[10])
                     st.rerun()
     else:
         st.info("No activities to do!")
@@ -386,60 +415,6 @@ elif choice == "View Supplies List":
             ''', unsafe_allow_html=True)
     else:
         st.info("No activities to do!")
-
-elif choice == "Generate Activities (AI)":
-    colored_header(label="Generate Activities", description="Use AI to create new activities based on a theme or idea", color_name="green-70")
-    theme = st.text_input("Enter a theme:")
-
-    if st.button("Generate Activities"):
-        if theme:
-            activities = generate_activities(theme)
-            if activities:
-                st.session_state.generated_activities = activities
-                st.success("Activities generated successfully!")
-            else:
-                st.error("No activities generated.")
-        else:
-            st.error("Please enter a theme.")
-
-    if st.session_state.generated_activities:
-        for i, activity in enumerate(st.session_state.generated_activities):
-            st.subheader(activity["Activity Title"])
-            st.write(f"**Type**: {activity['Type']}")
-            st.write(f"**Description**: {activity['Description']}")
-            st.write("**Supplies**:")
-            st.write(", ".join(activity['Supplies']))
-            st.write("**Instructions**:")
-            st.write("\n".join(activity['Instructions']))
-            
-            key = f"checkbox_{i}_{activity['Activity Title']}"
-            activity['selected'] = st.checkbox("Select this activity", key=key, value=activity.get('selected', False))
-
-        if st.button("Add Selected Activities"):
-            selected_activities = [a for a in st.session_state.generated_activities if a.get('selected', False)]
-            if selected_activities:
-                conn = sqlite3.connect('activities.db')
-                cursor = conn.cursor()
-                
-                success_count = 0
-                for activity in selected_activities:
-                    try:
-                        add_activity(conn, cursor, pinecone_index, activity)
-                        success_count += 1
-                    except Exception as e:
-                        st.error(f"Error adding activity '{activity['Activity Title']}': {str(e)}")
-                
-                conn.close()
-                
-                if success_count > 0:
-                    st.success(f'{success_count} activities added and embedded successfully!')
-                    # Clear the generated activities after successful addition
-                    st.session_state.generated_activities = []
-                    st.rerun()
-                if success_count < len(selected_activities):
-                    st.warning(f'{len(selected_activities) - success_count} activities failed to add. Please check the errors above.')
-            else:
-                st.warning("No activities selected. Please select at least one activity to add.")
 
 elif choice == "Bulk Add Activities":
     colored_header(label="Bulk Add Activities", description="Add multiple activities at once", color_name="orange-70")
@@ -490,41 +465,109 @@ elif choice == "Bulk Add Activities":
         else:
             st.error('Please enter at least one activity.')
 
-elif choice == "Theme Search":
-    colored_header(label="Theme Search", description="Find activities based on a theme", color_name="blue-70")
-    theme_description = st.text_input('Enter a theme description:')
+elif choice == "Add Activity":
+    colored_header(label="Add New Activity", description="Create a new activity", color_name="blue-70")
+    title = st.text_input("Title", key="add_title")
+    type = st.selectbox("Type", ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"], key="add_type")
+    description = st.text_area("Description", key="add_description")
+    supplies = st.text_area("Supplies", key="add_supplies")
+    instructions = st.text_area("Instructions", key="add_instructions")
+    
+    
+    development_age_group = st.selectbox("Development Age Group", 
+                                         ["Toddlers (2-3 years)", "Preschoolers (3-5 years)", "School-age (6-13 years)", "Not specified"], 
+                                         key="add_age_group")
+    
+    development_group_justification = st.text_area("Development Group Justification", key="add_justification")
+    adaptations = st.text_area("Adaptations", key="add_adaptations")
 
-    if 'theme_search_results' not in st.session_state:
-        st.session_state.theme_search_results = {}
+    source = st.text_input("Source", key="add_source")
+    to_do = st.checkbox("To Do", key="add_to_do")
+    
+    if st.button("Add", key="add_button"):
+        add_activity(title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations)
+        st.success(f"Activity '{title}' added successfully!")
 
-    if st.button('Search'):
-        if theme_description:
-            st.session_state.theme_search_results = search_activities(theme_description)
-        else:
-            st.error("Please enter a theme description to search.")
-
-    if st.session_state.theme_search_results:
-        for activity_type, ids in st.session_state.theme_search_results.items():
-            if ids:
-                activities = get_activities_by_ids(ids)
-                if activities:
-                    st.subheader(f"{activity_type} Activities:")
-                    for activity in activities:
-                        with st.expander(f"{activity[1]} (ID: {activity[0]})"):
-                            st.write(f"**Type:** {activity[2]}")
-                            st.write(f"**Description:** {activity[3]}")
-                            st.write(f"**Supplies:** {activity[4]}")
-                            st.write(f"**Instructions:** {activity[5]}")
-                            st.write(f"**Source:** {activity[6]}")
-                            to_do = st.checkbox("To Do", value=activity[7], key=f"todo_{activity[0]}")
-                            if to_do != activity[7]:
-                                update_activity(activity[0], activity[1], activity[2], activity[3], activity[4], activity[5], activity[6], to_do)
-                                st.rerun()
-                else:
-                    st.info(f"No matching {activity_type} activities found in the database.")
+elif choice == "Edit Activity":
+    colored_header(label="Edit Activity", description="Modify an existing activity", color_name="orange-70")
+    activities = get_activities()
+    activity_ids = [activity[0] for activity in activities]
+    selected_id = st.selectbox("Select Activity ID", activity_ids, key="edit_select_id")
+    
+    if selected_id:
+        activity = [a for a in activities if a[0] == selected_id][0]
+        title = st.text_input("Title", activity[1], key="edit_title")
+        type = st.selectbox("Type", ["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"], index=["Art", "Cooking", "Craft", "Group Game", "Physical", "Puzzle", "Science"].index(activity[2]), key="edit_type")
+        description = st.text_area("Description", activity[3], key="edit_description")
+        supplies = st.text_area("Supplies", activity[4], key="edit_supplies")
+        instructions = st.text_area("Instructions", activity[5], key="edit_instructions")
+        source = st.text_input("Source", activity[6], key="edit_source")
+        to_do = st.checkbox("To Do", activity[7], key="edit_to_do")
+        
+        age_group_options = ["Toddlers (2-3 years)", "Preschoolers (3-5 years)", "School-age (6-13 years)", "Not specified"]
+        current_age_group = activity[8] if activity[8] else "Not specified"
+        
+        # Find the closest match for the current age group
+        if current_age_group not in age_group_options:
+            if "Toddler" in current_age_group:
+                current_age_group = "Toddlers (2-3 years)"
+            elif "Preschool" in current_age_group:
+                current_age_group = "Preschoolers (3-5 years)"
+            elif "School" in current_age_group:
+                current_age_group = "School-age (6-13 years)"
             else:
-                st.info(f"No matching {activity_type} activities found in Pinecone.")
+                current_age_group = "Not specified"
+        
+        development_age_group = st.selectbox("Development Age Group", 
+                                             age_group_options,
+                                             index=age_group_options.index(current_age_group),
+                                             key="edit_age_group")
+        
+        development_group_justification = st.text_area("Development Group Justification", activity[9] if activity[9] else "", key="edit_justification")
+        adaptations = st.text_area("Adaptations", activity[10] if activity[10] else "", key="edit_adaptations")
+        
+        if st.button("Update", key="edit_button"):
+            update_activity(selected_id, title, type, description, supplies, instructions, source, to_do, development_age_group, development_group_justification, adaptations)
+            st.success(f"Activity '{title}' updated successfully!")
+
+elif choice == "View Activities":
+    colored_header(label="All Activities", description="View all stored activities", color_name="green-70")
+    activities = get_activities()
+    
+    # Sort activities by type
+    activities_by_type = {}
+    for activity in activities:
+        activity_type = activity[2]  # The type is at index 2
+        if activity_type not in activities_by_type:
+            activities_by_type[activity_type] = []
+        activities_by_type[activity_type].append(activity)
+    
+    # Display activities sorted by type
+    for activity_type in sorted(activities_by_type.keys()):
+        st.subheader(f"{activity_type} Activities")
+        for activity in activities_by_type[activity_type]:
+            with st.expander(f"{activity[1]} (ID: {activity[0]})"):
+                st.write(f"**Description:** {activity[3]}")
+                st.write(f"**Supplies:** {activity[4]}")
+                st.write(f"**Instructions:** {activity[5]}")
+                st.write(f"**Development Age Group:** {activity[8] if activity[8] else 'Not specified'}")
+                st.write(f"**Development Group Justification:** {activity[9] if activity[9] else 'Not provided'}")
+                st.write(f"**Adaptations:** {activity[10] if activity[10] else 'Not provided'}")
+                st.write(f"**Source:** {activity[6]}")
+                st.write(f"**To Do:** {'Yes' if activity[7] else 'No'}")
+
+elif choice == "Delete Activity":
+    colored_header(label="Delete Activity", description="Remove an activity from the database", color_name="red-70")
+    activities = get_activities()
+    activity_ids = [activity[0] for activity in activities]
+    selected_id = st.selectbox("Select Activity ID", activity_ids, key="delete_select_id")
+    
+    if selected_id and st.button("Delete", key="delete_button"):
+        delete_activity(selected_id)
+        st.success("Activity deleted successfully from both SQLite and Pinecone!")
+
 
 # Add a footer
 st.markdown("---")
 st.markdown("Created with ❤️ by Mr. Brussow")
+
