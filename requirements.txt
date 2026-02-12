@@ -42,13 +42,14 @@ openpyxl
 python-docx
 
 # vector database
-pinecone-client
+pinecone
 tiktoken
 
 # streamlit
 streamlit
 streamlit-extras
 streamlit-option-menu
+weasyprint
 
 # Google API
 google-api-python-client
