@@ -22,11 +22,11 @@ load_dotenv()
 anthropic_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Initialize Kimi client (OpenAI-compatible)
-kimi_client = OpenAI(
-    api_key=os.getenv('KIMI_API_KEY'),
-    base_url="https://api.moonshot.cn/v1"
-)
+# Initialize Kimi client (disabled - API keys invalid)
+# kimi_client = OpenAI(
+#     api_key=os.getenv('KIMI_API_KEY'),
+#     base_url="https://api.moonshot.cn/v1"
+# )
 
 # Initialize DeepSeek client (OpenAI-compatible)
 deepseek_client = OpenAI(
@@ -44,12 +44,6 @@ AVAILABLE_MODELS = {
         "provider": "anthropic",
         "max_tokens": 4000,
         "description": "Anthropic's latest - excellent for structured output"
-    },
-    "Kimi K2.5": {
-        "id": "kimi-k2-5",
-        "provider": "kimi",
-        "max_tokens": 4000,
-        "description": "Moonshot's coding model - fast and capable"
     },
     "GPT-4o": {
         "id": "gpt-4o",
@@ -209,13 +203,8 @@ def generate_activities_with_model(prompt, model_name):
             api_response_content = response.choices[0].message.content
             
         elif provider == "kimi":
-            response = kimi_client.chat.completions.create(
-                model=model_id,
-                max_tokens=max_tokens,
-                temperature=0.7,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            api_response_content = response.choices[0].message.content
+            st.error("Kimi K2.5 is temporarily unavailable. Please use Claude, GPT-4o, or DeepSeek.")
+            return None
             
         elif provider == "deepseek":
             response = deepseek_client.chat.completions.create(
