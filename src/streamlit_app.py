@@ -21,8 +21,43 @@ load_dotenv()
 # Initialize clients
 anthropic_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# Initialize OpenRouter client for Kimi and other models
+openrouter_client = OpenAI(
+    api_key=os.getenv('OPENROUTER_API_KEY'),
+    base_url="https://openrouter.ai/api/v1"
+)
+
 pinecone_client = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 pinecone_index = pinecone_client.Index(os.getenv('PINECONE_INDEX_NAME'))
+
+# Available AI models
+AVAILABLE_MODELS = {
+    "Claude 3.7 Sonnet": {
+        "id": "claude-3-7-sonnet-20250219",
+        "provider": "anthropic",
+        "max_tokens": 4000,
+        "description": "Anthropic's latest - excellent for structured output"
+    },
+    "Kimi K2.5": {
+        "id": "kimi-coding/k2p5",
+        "provider": "openrouter",
+        "max_tokens": 4000,
+        "description": "Moonshot's coding model - fast and capable"
+    },
+    "GPT-4o": {
+        "id": "openai/gpt-4o",
+        "provider": "openrouter",
+        "max_tokens": 4000,
+        "description": "OpenAI's GPT-4o via OpenRouter"
+    },
+    "DeepSeek V3": {
+        "id": "deepseek/deepseek-chat",
+        "provider": "openrouter",
+        "max_tokens": 4000,
+        "description": "DeepSeek's general chat model"
+    }
+}
 
 # Initialize session state for generated activities
 if 'generated_activities' not in st.session_state:
@@ -31,6 +66,10 @@ if 'generated_activities' not in st.session_state:
 # Initialize session state for supplies-generated activities
 if 'supplies_generated_activities' not in st.session_state:
     st.session_state.supplies_generated_activities = []
+
+# Initialize session state for selected model
+if 'selected_model' not in st.session_state:
+    st.session_state.selected_model = "Claude 3.7 Sonnet"
 
 # Function to fetch activities that need to be done
 def get_todo_activities():
@@ -136,8 +175,94 @@ def delete_activity(id):
     # Delete from Pinecone
     pinecone_index.delete(ids=[str(id)])
 
+# Unified function to generate activities using any supported model
+def generate_activities_with_model(prompt, model_name):
+    """Generate activities using the selected AI model."""
+    model_config = AVAILABLE_MODELS.get(model_name, AVAILABLE_MODELS["Claude 3.7 Sonnet"])
+    provider = model_config["provider"]
+    model_id = model_config["id"]
+    max_tokens = model_config["max_tokens"]
+    
+    try:
+        if provider == "anthropic":
+            response = anthropic_client.messages.create(
+                model=model_id,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            api_response_content = response.content[0].text
+            
+        elif provider == "openrouter":
+            response = openrouter_client.chat.completions.create(
+                model=model_id,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            api_response_content = response.choices[0].message.content
+            
+        else:
+            raise ValueError(f"Unknown provider: {provider}")
+        
+        # Parse JSON from response
+        return parse_activity_json(api_response_content)
+        
+    except Exception as e:
+        st.error(f"Error with {model_name}: {str(e)}")
+        return None
+
+def parse_activity_json(api_response_content):
+    """Parse JSON activities from API response."""
+    # Find JSON content
+    json_start = api_response_content.find("[")
+    json_end = api_response_content.rfind("]") + 1
+    
+    if json_start == -1 or json_end == 0:
+        st.error("No JSON array found in the response")
+        st.code(api_response_content)
+        return None
+        
+    json_content = api_response_content[json_start:json_end]
+    
+    # Check if the JSON content is complete
+    if not json_content.strip().endswith("]"):
+        st.error("Response appears to be truncated. Please try again.")
+        st.code(json_content)
+        return None
+    
+    # Try to clean up common JSON issues
+    json_content = json_content.replace('\n', ' ').replace('\r', ' ')
+    json_content = json_content.replace('",}', '"}').replace(',]', ']')
+    
+    # Parse JSON
+    try:
+        activities = json.loads(json_content)
+    except json.JSONDecodeError as json_error:
+        st.error(f"JSON parsing error: {json_error}")
+        st.error("Raw JSON content:")
+        st.code(json_content)
+        return None
+    
+    # Validate activities structure
+    if not isinstance(activities, list):
+        st.error("Response is not a list of activities")
+        return None
+        
+    for activity in activities:
+        required_fields = ["Activity Title", "Type", "Description", "Supplies", "Instructions"]
+        missing_fields = [field for field in required_fields if field not in activity]
+        if missing_fields:
+            st.error(f"Activity missing required fields: {', '.join(missing_fields)}")
+            return None
+            
+    return activities
+
 # New functions from other files
-def generate_activities(theme):
+def generate_activities(theme, model_name=None):
+    if model_name is None:
+        model_name = st.session_state.selected_model
+        
     prompt = f"""
     Given the theme "{theme}", create 2 activities for each of these types: Art, Craft, Science, Cooking, and Physical (5 activities total).
     For each activity, provide the following details in a JSON array format:
@@ -152,71 +277,25 @@ def generate_activities(theme):
     Important: Keep each activity concise and ensure the response is complete. Do not cut off mid-activity.
     Ensure the JSON is properly formatted and complete.
     """
-
-    try:
-        response = anthropic_client.messages.create(
-            model="claude-3-7-sonnet-20250219",
-            max_tokens=4000,
-            temperature=0.7,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        api_response_content = response.content[0].text
-        
-        # Find JSON content
-        json_start = api_response_content.find("[")
-        json_end = api_response_content.rfind("]") + 1
-        
-        if json_start == -1 or json_end == 0:
-            st.error("No JSON array found in the response")
-            st.code(api_response_content)  # Show the raw response for debugging
-            return None
-            
-        json_content = api_response_content[json_start:json_end]
-        
-        # Check if the JSON content is complete
-        if not json_content.strip().endswith("]"):
-            st.error("Response appears to be truncated. Please try again.")
-            st.code(json_content)  # Show the truncated content for debugging
-            return None
-        
-        # Try to clean up common JSON issues
-        json_content = json_content.replace('\n', ' ').replace('\r', ' ')
-        json_content = json_content.replace('",}', '"}').replace(',]', ']')
-        
-        # Parse JSON
+    
+    # Add retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
         try:
-            activities = json.loads(json_content)
-        except json.JSONDecodeError as json_error:
-            st.error(f"JSON parsing error: {json_error}")
-            st.error("Raw JSON content:")
-            st.code(json_content)
-            return None
-        
-        # Validate activities structure
-        if not isinstance(activities, list):
-            st.error("Response is not a list of activities")
-            return None
-            
-        for activity in activities:
-            required_fields = ["Activity Title", "Type", "Description", "Supplies", "Instructions"]
-            missing_fields = [field for field in required_fields if field not in activity]
-            if missing_fields:
-                st.error(f"Activity missing required fields: {', '.join(missing_fields)}")
+            return generate_activities_with_model(prompt, model_name)
+        except Exception as e:
+            if attempt < max_retries - 1:
+                st.warning(f"Attempt {attempt + 1} failed, retrying... ({str(e)})")
+                import time
+                time.sleep(2)
+            else:
+                st.error(f"All {max_retries} attempts failed. Last error: {str(e)}")
                 return None
-                
-        return activities
-        
-    except json.JSONDecodeError as e:
-        st.error(f"Failed to decode JSON from API response. Error: {e}")
-        st.error("Raw API response:")
-        st.code(api_response_content)
-        return None
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {str(e)}")
-        return None
 
-def generate_activities_from_supplies(supplies_list, theme=None):
+def generate_activities_from_supplies(supplies_list, theme=None, model_name=None):
+    if model_name is None:
+        model_name = st.session_state.selected_model
+        
     # Clean and simplify the supplies list to avoid overly long prompts
     supplies_clean = []
     for supply in supplies_list.split(','):
@@ -254,80 +333,20 @@ def generate_activities_from_supplies(supplies_list, theme=None):
     - If additional supplies are needed, clearly indicate which ones are from the provided list vs. additional suggestions.
     - Ensure the JSON is properly formatted and complete.
     """
-
-    try:
-        # Add retry logic for API calls
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = anthropic_client.messages.create(
-                    model="claude-3-7-sonnet-20250219",
-                    max_tokens=4000,
-                    temperature=0.7,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                api_response_content = response.content[0].text
-                break  # Success, exit retry loop
-            except Exception as api_error:
-                if attempt < max_retries - 1:
-                    st.warning(f"API call attempt {attempt + 1} failed, retrying... ({str(api_error)})")
-                    import time
-                    time.sleep(2)  # Wait 2 seconds before retry
-                else:
-                    raise api_error  # Re-raise on final attempt
-        
-        # Find JSON content
-        json_start = api_response_content.find("[")
-        json_end = api_response_content.rfind("]") + 1
-        
-        if json_start == -1 or json_end == 0:
-            st.error("No JSON array found in the response")
-            st.code(api_response_content)  # Show the raw response for debugging
-            return None
-            
-        json_content = api_response_content[json_start:json_end]
-        
-        # Check if the JSON content is complete
-        if not json_content.strip().endswith("]"):
-            st.error("Response appears to be truncated. Please try again.")
-            st.code(json_content)  # Show the truncated content for debugging
-            return None
-        
-        # Try to clean up common JSON issues
-        json_content = json_content.replace('\n', ' ').replace('\r', ' ')
-        json_content = json_content.replace('",}', '"}').replace(',]', ']')
-        
-        # Parse JSON
+    
+    # Add retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
         try:
-            activities = json.loads(json_content)
-        except json.JSONDecodeError as json_error:
-            st.error(f"JSON parsing error: {json_error}")
-            st.error("Raw JSON content:")
-            st.code(json_content)
-            return None
-        
-        # Validate activities structure
-        if not isinstance(activities, list):
-            st.error("Response is not a list of activities")
-            return None
-            
-        for activity in activities:
-            required_fields = ["Activity Title", "Type", "Description", "Supplies", "Instructions"]
-            missing_fields = [field for field in required_fields if field not in activity]
-            if missing_fields:
-                st.error(f"Activity missing required fields: {', '.join(missing_fields)}")
+            return generate_activities_with_model(prompt, model_name)
+        except Exception as e:
+            if attempt < max_retries - 1:
+                st.warning(f"Attempt {attempt + 1} failed, retrying... ({str(e)})")
+                import time
+                time.sleep(2)
+            else:
+                st.error(f"All {max_retries} attempts failed. Last error: {str(e)}")
                 return None
-                
-        return activities
-        
-    except json.JSONDecodeError as e:
-        st.error(f"Failed to decode JSON from API response. Error: {e}")
-        st.error("Raw API response:")
-        st.code(api_response_content)
-        return None
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {str(e)}")
-        return None
 
 def get_embedding(text):
     response = openai_client.embeddings.create(input=text, model="text-embedding-3-large")
@@ -651,6 +670,24 @@ st.title("🎨 Activity Planner")
 # Sidebar menu using streamlit-option-menu
 with st.sidebar:
     st.title("Menu")
+    
+    # Model selector
+    st.markdown("---")
+    st.caption("🤖 AI Model")
+    selected_model = st.selectbox(
+        "Select model",
+        list(AVAILABLE_MODELS.keys()),
+        index=list(AVAILABLE_MODELS.keys()).index(st.session_state.selected_model),
+        label_visibility="collapsed"
+    )
+    if selected_model != st.session_state.selected_model:
+        st.session_state.selected_model = selected_model
+        st.rerun()
+    
+    # Show current model description
+    st.caption(f"*{AVAILABLE_MODELS[st.session_state.selected_model]['description']}*")
+    st.markdown("---")
+    
     choice = option_menu(
         menu_title=None,
         options=[
@@ -725,6 +762,7 @@ elif choice == "Theme Search":
 
 elif choice == "Generate Activities (AI)":
     colored_header(label="Generate Activities", description="Use AI to create new activities based on a theme or idea", color_name="green-70")
+    st.caption(f"Using: **{st.session_state.selected_model}** 🤖")
     theme = st.text_input("Enter a theme:")
 
     if st.button("Generate Activities"):
@@ -732,7 +770,7 @@ elif choice == "Generate Activities (AI)":
             activities = generate_activities(theme)
             if activities:
                 st.session_state.generated_activities = activities
-                st.success("Activities generated successfully!")
+                st.success(f"Activities generated successfully with {st.session_state.selected_model}!")
             else:
                 st.error("No activities generated.")
         else:
@@ -781,6 +819,7 @@ elif choice == "Generate Activities (AI)":
 
 elif choice == "Generate from Supplies (AI)":
     colored_header(label="Generate Activities from Supplies", description="Use AI to create new activities based on available supplies and theme", color_name="violet-70")
+    st.caption(f"Using: **{st.session_state.selected_model}** 🤖")
     
     # Get available supplies from database
     available_supplies = get_available_supplies()
@@ -848,7 +887,7 @@ elif choice == "Generate from Supplies (AI)":
                 if activities:
                     st.session_state.supplies_generated_activities = activities
                     theme_message = f" with theme '{theme_input}'" if theme_input.strip() else ""
-                    st.success(f"Activities generated successfully from your supplies{theme_message}!")
+                    st.success(f"Activities generated successfully with {st.session_state.selected_model} from your supplies{theme_message}!")
                 else:
                     st.error("No activities generated.")
         
@@ -862,7 +901,7 @@ elif choice == "Generate from Supplies (AI)":
                 if activities:
                     st.session_state.supplies_generated_activities = activities
                     theme_message = f" with theme '{theme_input}'" if theme_input.strip() else ""
-                    st.success(f"Activities generated successfully from all available supplies{theme_message}!")
+                    st.success(f"Activities generated successfully with {st.session_state.selected_model} from all available supplies{theme_message}!")
                 else:
                     st.error("No activities generated.")
     else:
