@@ -519,6 +519,129 @@ def get_all_week_themes():
     # Only include rows with a non-empty theme
     return [(row[0], row[1]) for row in rows if row[1]]
 
+# --- Weekly Supply List Helpers ---
+def get_scheduled_activities_with_supplies(start_date):
+    """Get all activities scheduled for a week with their supplies."""
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    end_date = (datetime.datetime.strptime(start_date, '%Y-%m-%d') + datetime.timedelta(days=6)).strftime('%Y-%m-%d')
+    cursor.execute('''
+        SELECT a.id, a.title, a.type, a.supplies, s.scheduled_date
+        FROM activity_schedule s
+        JOIN activities a ON s.activity_id = a.id
+        WHERE s.scheduled_date BETWEEN ? AND ?
+        ORDER BY s.scheduled_date, a.type
+    ''', (start_date, end_date))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+def normalize_supply_name(supply):
+    """Normalize a supply name for de-duplication."""
+    # Convert to lowercase, strip whitespace, remove common pluralization differences
+    normalized = supply.lower().strip()
+    # Remove trailing 's' for basic de-duplication (paper vs papers)
+    if normalized.endswith('s') and len(normalized) > 3:
+        normalized = normalized[:-1]
+    return normalized
+
+def parse_supplies(supplies_text):
+    """Parse supplies text into individual items."""
+    if not supplies_text:
+        return []
+    # Split by comma, newline, or bullet points
+    items = []
+    for separator in [',', '\n', '•', '-', '*']:
+        if separator in supplies_text:
+            items = supplies_text.split(separator)
+            break
+    else:
+        items = [supplies_text]
+    
+    # Clean up each item
+    cleaned = []
+    for item in items:
+        item = item.strip()
+        # Remove quantities in parentheses like "(10 sheets)" or "(1 bottle)"
+        if '(' in item and ')' in item:
+            item = item[:item.find('(')].strip()
+        # Remove leading bullets or numbers
+        item = item.lstrip('0123456789.-•* ').strip()
+        if item and len(item) > 1:
+            cleaned.append(item)
+    return cleaned
+
+def get_supply_category_mapping():
+    """Get a mapping of supply names to their categories."""
+    conn = sqlite3.connect('activities.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT category, item FROM available_supplies')
+    supplies = cursor.fetchall()
+    conn.close()
+    
+    # Create mapping: normalized supply name -> category
+    mapping = {}
+    for category, item in supplies:
+        normalized = normalize_supply_name(item)
+        mapping[normalized] = category
+        # Also map the original
+        mapping[item.lower().strip()] = category
+    return mapping
+
+def aggregate_weekly_supplies(scheduled_activities):
+    """Aggregate supplies from scheduled activities, de-duplicate and categorize."""
+    supply_mapping = get_supply_category_mapping()
+    
+    # Track supplies: normalized_name -> {original_name, count, activities, category}
+    supplies_agg = {}
+    
+    for activity in scheduled_activities:
+        activity_id, title, act_type, supplies_text, scheduled_date = activity
+        supplies_list = parse_supplies(supplies_text)
+        
+        for supply in supplies_list:
+            normalized = normalize_supply_name(supply)
+            
+            if normalized not in supplies_agg:
+                # Try to find category from available supplies
+                category = supply_mapping.get(normalized, 'Uncategorized')
+                if category == 'Uncategorized':
+                    # Try fuzzy match
+                    for known_supply, known_category in supply_mapping.items():
+                        if normalized in known_supply or known_supply in normalized:
+                            category = known_category
+                            break
+                
+                supplies_agg[normalized] = {
+                    'original': supply,
+                    'count': 1,
+                    'activities': [title],
+                    'category': category
+                }
+            else:
+                supplies_agg[normalized]['count'] += 1
+                if title not in supplies_agg[normalized]['activities']:
+                    supplies_agg[normalized]['activities'].append(title)
+    
+    # Group by category
+    categorized = {}
+    for normalized, data in supplies_agg.items():
+        category = data['category']
+        if category not in categorized:
+            categorized[category] = []
+        categorized[category].append(data)
+    
+    # Sort within each category by count (descending) then alphabetically
+    for category in categorized:
+        categorized[category].sort(key=lambda x: (-x['count'], x['original']))
+    
+    # Sort categories: put Uncategorized last
+    sorted_categories = sorted([c for c in categorized.keys() if c != 'Uncategorized'])
+    if 'Uncategorized' in categorized:
+        sorted_categories.append('Uncategorized')
+    
+    return {cat: categorized[cat] for cat in sorted_categories}
+
 # Streamlit App
 st.set_page_config(page_title="Activity Planner", page_icon="🎨", layout="wide")
 # add_logo("./logo.png")  # Add your logo image
@@ -533,14 +656,14 @@ with st.sidebar:
         options=[
             "Home", "Theme Search", "Generate Activities (AI)", "Generate from Supplies (AI)",
             "View To Do Activities", "View Supplies List", "Manage Supplies",
-            "Bulk Add Activities", "Add Activity", 
-            "Edit Activity", "View Activities", "Weekly Planner"
+            "Bulk Add Activities", "Add Activity",
+            "Edit Activity", "View Activities", "Weekly Planner", "Weekly Supply List"
         ],
         icons=[
             'house', 'search', 'magic', 'box-seam',
             'list-check', 'cart', 'gear',
-            'file-earmark-plus', 'plus-circle', 
-            'pencil', 'eye', 'calendar3'
+            'file-earmark-plus', 'plus-circle',
+            'pencil', 'eye', 'calendar3', 'box'
         ],
         menu_icon="cast",
         default_index=0,
@@ -1376,6 +1499,237 @@ elif choice == "Weekly Planner":
         st.markdown(html_content, unsafe_allow_html=True)
         
         conn.close()
+
+elif choice == "Weekly Supply List":
+    colored_header(label="Weekly Supply List", description="Aggregate and print supplies for all activities in a week", color_name="green-70")
+    
+    today = datetime.date.today()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+
+    # Dropdown for selecting week by theme
+    week_theme_options = get_all_week_themes()
+    theme_labels = [f"{theme} ({week_start})" for week_start, theme in week_theme_options]
+    theme_to_week = {f"{theme} ({week_start})": week_start for week_start, theme in week_theme_options}
+    default_week_start = start_of_week.strftime('%Y-%m-%d')
+
+    selected_theme_label = None
+    if theme_labels:
+        selected_theme_label = st.selectbox('Jump to week by theme:', ["Current Week"] + theme_labels, key="supply_theme_select")
+        if selected_theme_label != "Current Week":
+            selected_week_start_str = theme_to_week[selected_theme_label]
+            week_start = datetime.datetime.strptime(selected_week_start_str, '%Y-%m-%d').date()
+        else:
+            week_start = start_of_week
+    else:
+        week_start = start_of_week
+
+    start_date = st.date_input("Select week (pick any day in week)", value=week_start, key="supply_week_date")
+    week_start = start_date - datetime.timedelta(days=start_date.weekday())
+    week_days = [0, 1, 3, 4]  # Mon, Tue, Thu, Fri
+    week_dates = [(week_start + datetime.timedelta(days=i)) for i in week_days]
+    
+    week_start_str = week_start.strftime('%Y-%m-%d')
+    
+    # Get week theme
+    week_theme = get_weekly_meta(week_start_str)
+    if week_theme:
+        st.markdown(f"**Week Theme:** {week_theme}")
+    
+    st.markdown(f"**Week of:** {week_start.strftime('%B %d, %Y')} - {(week_start + datetime.timedelta(days=6)).strftime('%B %d, %Y')}")
+    
+    # Get scheduled activities
+    scheduled_activities = get_scheduled_activities_with_supplies(week_start_str)
+    
+    if not scheduled_activities:
+        st.info("No activities scheduled for this week. Go to Weekly Planner to add activities.")
+    else:
+        st.write(f"**Activities scheduled:** {len(scheduled_activities)}")
+        
+        # Show activities breakdown
+        with st.expander("View Scheduled Activities"):
+            for activity in scheduled_activities:
+                activity_id, title, act_type, supplies_text, scheduled_date = activity
+                day_name = datetime.datetime.strptime(scheduled_date, '%Y-%m-%d').strftime('%A')
+                st.write(f"• **{title}** ({act_type}) - {day_name}")
+        
+        # Aggregate supplies
+        categorized_supplies = aggregate_weekly_supplies(scheduled_activities)
+        
+        # Display aggregated supplies
+        st.markdown("### Aggregated Supply List")
+        
+        total_items = sum(len(items) for items in categorized_supplies.values())
+        st.write(f"**Total unique items:** {total_items}")
+        
+        # Display by category
+        for category, items in categorized_supplies.items():
+            with st.expander(f"📦 {category} ({len(items)} items)", expanded=True):
+                for item in items:
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        # Show checkbox for print checklist
+                        st.checkbox(f"{item['original']}", key=f"supply_check_{item['original']}", value=False)
+                    with col2:
+                        if item['count'] > 1:
+                            st.caption(f"Used in {item['count']} activities")
+        
+        # Print-friendly view
+        st.markdown("---")
+        st.markdown("### Print-Friendly Checklist")
+        
+        if st.button("Generate Printable Supply List"):
+            # Create HTML for printing
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Weekly Supply List</title>
+                <style>
+                    @page {{
+                        margin: 1cm;
+                        @top-center {{
+                            content: "Weekly Supply List";
+                            font-size: 10pt;
+                        }}
+                        @bottom-center {{
+                            content: counter(page);
+                            font-size: 10pt;
+                        }}
+                    }}
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                    }}
+                    h1, h2 {{ text-align: center; }}
+                    h1 {{ color: #2c3e50; font-size: 24pt; margin-bottom: 10pt; }}
+                    h2 {{ color: #34495e; font-size: 16pt; margin-bottom: 20pt; }}
+                    h3 {{ 
+                        color: #2c3e50; 
+                        font-size: 14pt; 
+                        margin-top: 20pt;
+                        border-bottom: 2px solid #3498db;
+                        padding-bottom: 5pt;
+                    }}
+                    .supply-item {{
+                        margin: 8px 0;
+                        padding: 5px;
+                        border-bottom: 1px dotted #ccc;
+                    }}
+                    .checkbox {{
+                        display: inline-block;
+                        width: 16px;
+                        height: 16px;
+                        border: 2px solid #333;
+                        margin-right: 10px;
+                        vertical-align: middle;
+                    }}
+                    .supply-name {{
+                        vertical-align: middle;
+                    }}
+                    .multi-use {{
+                        color: #e74c3c;
+                        font-size: 10pt;
+                        font-style: italic;
+                    }}
+                    .category {{
+                        page-break-inside: avoid;
+                    }}
+                    @media print {{
+                        .no-print {{ display: none; }}
+                    }}
+                </style>
+            </head>
+            <body>
+                <h1>Weekly Supply List</h1>
+                <h2>Week of {week_start.strftime('%B %d, %Y')}</h2>
+            """
+            
+            if week_theme:
+                html_content += f"""
+                <p style="text-align: center; font-style: italic; color: #7f8c8d;">Theme: {week_theme}</p>
+                """
+            
+            # Add activities summary
+            html_content += """
+                <h3>Scheduled Activities</h3>
+                <ul>
+            """
+            for activity in scheduled_activities:
+                activity_id, title, act_type, supplies_text, scheduled_date = activity
+                day_name = datetime.datetime.strptime(scheduled_date, '%Y-%m-%d').strftime('%A')
+                html_content += f"    <li><strong>{title}</strong> ({act_type}) - {day_name}</li>\n"
+            html_content += "</ul>\n"
+            
+            # Add supplies by category
+            html_content += f"""
+                <h3>Supply Checklist ({total_items} items)</h3>
+            """
+            
+            for category, items in categorized_supplies.items():
+                html_content += f"""
+                <div class="category">
+                    <h3>{category} ({len(items)} items)</h3>
+                """
+                for item in items:
+                    multi_use = f" <span class='multi-use'>(×{item['count']})</span>" if item['count'] > 1 else ""
+                    html_content += f"""
+                    <div class="supply-item">
+                        <span class="checkbox"></span>
+                        <span class="supply-name">{item['original']}{multi_use}</span>
+                    </div>
+                    """
+                html_content += "</div>\n"
+            
+            html_content += """
+            </body>
+            </html>
+            """
+            
+            # Configure fonts and generate PDF
+            font_config = FontConfiguration()
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+                try:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as html_tmp:
+                        html_tmp.write(html_content)
+                        html_tmp.flush()
+                        
+                        HTML(filename=html_tmp.name).write_pdf(
+                            tmp.name,
+                            font_config=font_config,
+                            stylesheets=[CSS(string='''
+                                @page { 
+                                    margin: 1cm;
+                                    size: letter;
+                                }
+                                body { 
+                                    font-family: Arial, sans-serif;
+                                    margin: 0;
+                                    padding: 0;
+                                }
+                            ''')]
+                        )
+                        os.unlink(html_tmp.name)
+                    
+                    with open(tmp.name, 'rb') as pdf_file:
+                        pdf_bytes = pdf_file.read()
+                    
+                    os.unlink(tmp.name)
+                    
+                    st.download_button(
+                        label="📥 Download Supply List PDF",
+                        data=pdf_bytes,
+                        file_name=f"weekly_supplies_{week_start.strftime('%Y%m%d')}.pdf",
+                        mime="application/pdf"
+                    )
+                    
+                except Exception as e:
+                    st.error(f"Error generating PDF: {str(e)}")
+            
+            # Show preview
+            st.markdown("### Preview")
+            st.markdown(html_content, unsafe_allow_html=True)
 
 # Add a footer
 st.markdown("---")
