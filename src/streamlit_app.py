@@ -22,16 +22,22 @@ load_dotenv()
 anthropic_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Initialize OpenRouter client for Kimi and other models
-openrouter_client = OpenAI(
-    api_key=os.getenv('OPENROUTER_API_KEY'),
-    base_url="https://openrouter.ai/api/v1"
+# Initialize Kimi client (OpenAI-compatible)
+kimi_client = OpenAI(
+    api_key=os.getenv('KIMI_API_KEY'),
+    base_url="https://api.moonshot.cn/v1"
+)
+
+# Initialize DeepSeek client (OpenAI-compatible)
+deepseek_client = OpenAI(
+    api_key=os.getenv('DEEPSEEK_API_KEY'),
+    base_url="https://api.deepseek.com/v1"
 )
 
 pinecone_client = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 pinecone_index = pinecone_client.Index(os.getenv('PINECONE_INDEX_NAME'))
 
-# Available AI models
+# Available AI models (using direct API access)
 AVAILABLE_MODELS = {
     "Claude 3.7 Sonnet": {
         "id": "claude-3-7-sonnet-20250219",
@@ -40,20 +46,20 @@ AVAILABLE_MODELS = {
         "description": "Anthropic's latest - excellent for structured output"
     },
     "Kimi K2.5": {
-        "id": "kimi-coding/k2p5",
-        "provider": "openrouter",
+        "id": "kimi-k2-5",
+        "provider": "kimi",
         "max_tokens": 4000,
         "description": "Moonshot's coding model - fast and capable"
     },
     "GPT-4o": {
-        "id": "openai/gpt-4o",
-        "provider": "openrouter",
+        "id": "gpt-4o",
+        "provider": "openai",
         "max_tokens": 4000,
-        "description": "OpenAI's GPT-4o via OpenRouter"
+        "description": "OpenAI's GPT-4o"
     },
     "DeepSeek V3": {
-        "id": "deepseek/deepseek-chat",
-        "provider": "openrouter",
+        "id": "deepseek-chat",
+        "provider": "deepseek",
         "max_tokens": 4000,
         "description": "DeepSeek's general chat model"
     }
@@ -193,8 +199,26 @@ def generate_activities_with_model(prompt, model_name):
             )
             api_response_content = response.content[0].text
             
-        elif provider == "openrouter":
-            response = openrouter_client.chat.completions.create(
+        elif provider == "openai":
+            response = openai_client.chat.completions.create(
+                model=model_id,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            api_response_content = response.choices[0].message.content
+            
+        elif provider == "kimi":
+            response = kimi_client.chat.completions.create(
+                model=model_id,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            api_response_content = response.choices[0].message.content
+            
+        elif provider == "deepseek":
+            response = deepseek_client.chat.completions.create(
                 model=model_id,
                 max_tokens=max_tokens,
                 temperature=0.7,
