@@ -57,11 +57,11 @@ AVAILABLE_MODELS = {
         "max_tokens": 4000,
         "description": "OpenAI's GPT-4o"
     },
-    "DeepSeek V3": {
-        "id": "deepseek-chat",
+    "DeepSeek R1": {
+        "id": "deepseek-reasoner",
         "provider": "deepseek",
         "max_tokens": 4000,
-        "description": "DeepSeek's general chat model"
+        "description": "DeepSeek's reasoning model - resistant to prompt injection"
     }
 }
 
