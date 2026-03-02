@@ -22,40 +22,39 @@ load_dotenv()
 anthropic_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Initialize Kimi client (disabled - API keys invalid)
-# kimi_client = OpenAI(
-#     api_key=os.getenv('KIMI_API_KEY'),
-#     base_url="https://api.moonshot.cn/v1"
-# )
-
-# Initialize DeepSeek client (OpenAI-compatible)
-deepseek_client = OpenAI(
-    api_key=os.getenv('DEEPSEEK_API_KEY'),
-    base_url="https://api.deepseek.com/v1"
+# Initialize Kimi client (Kimi K2.5 via Moonshot API)
+kimi_client = OpenAI(
+    api_key=os.getenv('KIMI_API_KEY'),
+    base_url=os.getenv("KIMI_BASE_URL", "https://api.kimi.com/coding/v1"),
+    default_headers={
+        "User-Agent": "claude-code/1.0",
+        "X-Client-Name": "claude-code"
+    }
 )
+
 
 pinecone_client = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 pinecone_index = pinecone_client.Index(os.getenv('PINECONE_INDEX_NAME'))
 
 # Available AI models (using direct API access)
 AVAILABLE_MODELS = {
-    "Claude 3.7 Sonnet": {
-        "id": "claude-3-7-sonnet-20250219",
+    "Claude 4.5 Haiku": {
+        "id": "claude-haiku-4-5",
         "provider": "anthropic",
         "max_tokens": 4000,
-        "description": "Anthropic's latest - excellent for structured output"
+        "description": "Fast and cost-effective - great for activity generation"
     },
-    "GPT-4o": {
-        "id": "gpt-4o",
+    "GPT-5-nano": {
+        "id": "gpt-5-nano",
         "provider": "openai",
         "max_tokens": 4000,
-        "description": "OpenAI's GPT-4o"
+        "description": "OpenAI GPT-5-nano - ultra-cheap and fast for simple generation"
     },
-    "DeepSeek R1": {
-        "id": "deepseek-reasoner",
-        "provider": "deepseek",
+    "Kimi K2.5": {
+        "id": "kimi-k2.5",
+        "provider": "kimi",
         "max_tokens": 4000,
-        "description": "DeepSeek's reasoning model - resistant to prompt injection"
+        "description": "Moonshot's Kimi K2.5 - fast and capable"
     }
 }
 
@@ -69,7 +68,7 @@ if 'supplies_generated_activities' not in st.session_state:
 
 # Initialize session state for selected model
 if 'selected_model' not in st.session_state:
-    st.session_state.selected_model = "Claude 3.7 Sonnet"
+    st.session_state.selected_model = "Claude 4.5 Haiku"
 
 # Function to fetch activities that need to be done
 def get_todo_activities():
@@ -178,7 +177,7 @@ def delete_activity(id):
 # Unified function to generate activities using any supported model
 def generate_activities_with_model(prompt, model_name):
     """Generate activities using the selected AI model."""
-    model_config = AVAILABLE_MODELS.get(model_name, AVAILABLE_MODELS["Claude 3.7 Sonnet"])
+    model_config = AVAILABLE_MODELS.get(model_name, AVAILABLE_MODELS["Claude 4.5 Haiku"])
     provider = model_config["provider"]
     model_id = model_config["id"]
     max_tokens = model_config["max_tokens"]
@@ -194,20 +193,25 @@ def generate_activities_with_model(prompt, model_name):
             api_response_content = response.content[0].text
             
         elif provider == "openai":
-            response = openai_client.chat.completions.create(
-                model=model_id,
-                max_tokens=max_tokens,
-                temperature=0.7,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # GPT-5-nano uses max_completion_tokens instead of max_tokens
+            if model_id == "gpt-5-nano":
+                response = openai_client.chat.completions.create(
+                    model=model_id,
+                    max_completion_tokens=max_tokens,
+                    temperature=0.7,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+            else:
+                response = openai_client.chat.completions.create(
+                    model=model_id,
+                    max_tokens=max_tokens,
+                    temperature=0.7,
+                    messages=[{"role": "user", "content": prompt}]
+                )
             api_response_content = response.choices[0].message.content
             
         elif provider == "kimi":
-            st.error("Kimi K2.5 is temporarily unavailable. Please use Claude, GPT-4o, or DeepSeek.")
-            return None
-            
-        elif provider == "deepseek":
-            response = deepseek_client.chat.completions.create(
+            response = kimi_client.chat.completions.create(
                 model=model_id,
                 max_tokens=max_tokens,
                 temperature=0.7,
@@ -215,6 +219,7 @@ def generate_activities_with_model(prompt, model_name):
             )
             api_response_content = response.choices[0].message.content
             
+        
         else:
             raise ValueError(f"Unknown provider: {provider}")
         
